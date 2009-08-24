@@ -12,11 +12,13 @@ class RealexTest < Test::Unit::TestCase
     @login = 'your_merchant_id'
     @password = 'your_secret'
     @account = 'your_account'
+    @rebate_secret = 'your_rebate_secret'
     
     @gateway = RealexGateway.new(
       :login => @login,
       :password => @password,
-      :account => @account
+      :account => @account,
+      :rebate_secret => @rebate_secret
     )
 
     @gateway_with_account = RealexGateway.new(
@@ -134,7 +136,65 @@ class RealexTest < Test::Unit::TestCase
 </request>
 SRC
     
-    assert_equal valid_capture_xml, @gateway.build_settle_request(options)    
+    assert_equal valid_capture_xml, @gateway.build_settle_request(options)
+  end
+  
+  def test_purchase_xml
+    
+  end
+  
+  def test_void_xml
+    options = {
+      :pasref => '1234',
+      :authcode => '1234',
+      :order_id => '1'
+    }
+
+    ActiveMerchant::Billing::RealexGateway.expects(:timestamp).returns('20090824160201')
+
+    valid_void_request_xml = <<-SRC
+<request timestamp="20090824160201" type="void">
+  <merchantid>your_merchant_id</merchantid>
+  <account>your_account</account>
+  <orderid>1</orderid>
+  <pasref>1234</pasref>
+  <authcode>1234</authcode>
+  <sha1hash>a28e8d7ae105d98f8cf1a014786aed77bde6485a</sha1hash>
+</request>
+SRC
+
+    assert_equal valid_void_request_xml, @gateway.build_void_request(options)
+  end
+  
+  def test_auth_xml
+    
+  end
+  
+  def test_credit_xml
+    options = {
+      :pasref => '1234',
+      :authcode => '1234',
+      :order_id => '1'
+    }
+
+    ActiveMerchant::Billing::RealexGateway.expects(:timestamp).returns('20090824160201')
+
+    valid_credit_request_xml = <<-SRC
+<request timestamp="20090824160201" type="rebate">
+  <merchantid>your_merchant_id</merchantid>
+  <account>your_account</account>
+  <orderid>1</orderid>
+  <pasref>1234</pasref>
+  <authcode>1234</authcode>
+  <amount currency="EUR">100</amount>
+  <refundhash>f94ff2a7c125a8ad87e5683114ba1e384889240e</refundhash>
+  <autosettle flag="1"/>
+  <sha1hash>d232c3488b3822efd4f0f97bb8d6df9774cf97f7</sha1hash>
+</request>
+SRC
+
+    assert_equal valid_credit_request_xml, @gateway.build_rebate_request(@amount, options)
+
   end
   
   private
