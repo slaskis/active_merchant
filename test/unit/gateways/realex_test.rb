@@ -1,4 +1,4 @@
-require 'test_helper'
+require File.join(File.dirname(__FILE__) + '/../../test_helper')
 require 'digest/sha1'
 
 class RealexTest < Test::Unit::TestCase
@@ -6,7 +6,7 @@ class RealexTest < Test::Unit::TestCase
   def setup
     @login = 'your_merchant_id'
     @password = 'your_secret'
-  
+    
     @gateway = RealexGateway.new(
       :login => @merchant_id,
       :password => @secret,
@@ -62,6 +62,26 @@ class RealexTest < Test::Unit::TestCase
     @gateway.expects(:ssl_post).returns(unsuccessful_purchase_response)
     
     response = @gateway.purchase(@amount, @credit_card, @options)
+    assert_instance_of Response, response
+    assert_failure response
+    assert response.test?
+  end
+  
+  def test_successful_credit
+    @gateway = RealexGateway.new(:login => @login, :password => @password, :rebate_secret => 'xyz')
+    @gateway.expects(:ssl_post).returns(successful_credit_response)
+    
+    response = @gateway.credit(@amount, '1234', {:order_id => '1234', :pasref => '1234', :authcode => '1234' })
+    assert_instance_of Response, response
+    assert_success response
+    assert response.test?
+  end
+  
+  def test_unsuccessful_credit
+    @gateway = RealexGateway.new(:login => @login, :password => @password, :rebate_secret => 'xyz')
+    @gateway.expects(:ssl_post).returns(unsuccessful_credit_response)
+    
+    response = @gateway.credit(@amount, '1234', {:order_id => '1234', :pasref => '1234', :authcode => '1234' })
     assert_instance_of Response, response
     assert_failure response
     assert response.test?
@@ -143,6 +163,42 @@ class RealexTest < Test::Unit::TestCase
     <check id="1000">9</check>
     <check id="1001">9</check>
   </tss>
+  <sha1hash>7384ae67....ac7d7d</sha1hash>
+  <md5hash>34e7....a77d</md5hash>
+</response>"
+    RESPONSE
+  end
+  
+  def successful_credit_response
+    <<-RESPONSE
+<response timestamp='20010427043422'>
+  <merchantid>your merchant id</merchantid>
+  <account>account to use</account>
+  <orderid>order id from request</orderid>
+  <authcode>authcode received</authcode>
+  <result>00</result>
+  <message>[ test system ] message returned from system</message>
+  <pasref> realex payments reference</pasref>
+  <cvnresult>M</cvnresult>
+  <batchid>batch id for this transaction (if any)</batchid>
+  <sha1hash>7384ae67....ac7d7d</sha1hash>
+  <md5hash>34e7....a77d</md5hash>
+</response>"
+    RESPONSE
+  end
+
+  def unsuccessful_credit_response
+    <<-RESPONSE
+<response timestamp='20010427043422'>
+  <merchantid>your merchant id</merchantid>
+  <account>account to use</account>
+  <orderid>order id from request</orderid>
+  <authcode>authcode received</authcode>
+  <result>508</result>
+  <message>[ test system ] You may only rebate up to 115% of the original amount.</message>
+  <pasref> realex payments reference</pasref>
+  <cvnresult>M</cvnresult>
+  <batchid>batch id for this transaction (if any)</batchid>
   <sha1hash>7384ae67....ac7d7d</sha1hash>
   <md5hash>34e7....a77d</md5hash>
 </response>"

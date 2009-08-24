@@ -42,21 +42,123 @@ module ActiveMerchant
       BANK_ERROR = REALEX_ERROR  = "Gateway is in maintenance. Please try again later."
       ERROR = CLIENT_DEACTIVATED = "Gateway Error"
       
+      # Unique to the Realex gateway, it requires a separate secret password used to provide refunds/credits.
+      attr_accessor :refundhash
+      
       def initialize(options = {})
         requires!(options, :login, :password)
+        self.refundhash = Digest::SHA1.hexdigest(options[:rebate_secret]) if options.has_key?(:rebate_secret)
         @options = options
         super
       end  
-  
+
+      # Performs an authorization, which reserves the funds on the customer's credit card, but does not
+      # charge the card.
+      #
+      # ==== Parameters
+      #
+      # * <tt>money</tt> -- The amount to be authorized. Either an Integer value in cents or a Money object.
+      # * <tt>creditcard</tt> -- The CreditCard details for the transaction.
+      # * <tt>options</tt> -- A hash of optional parameters.
+      #
+      # ==== Options
+      #
+      # * <tt>:order_id</tt> -- The application generated order identifier. (REQUIRED)
+      def authorize(money, creditcard, options = {})
+        requires!(options, :order_id)
+        
+        request = build_purchase_or_authorization_request(:auth, money, credit_card, options) 
+        commit(request)
+      end
+      
+      # Perform a purchase, which is essentially an authorization and capture in a single operation.
+      #
+      # ==== Parameters
+      #
+      # * <tt>money</tt> -- The amount to be purchased. Either an Integer value in cents or a Money object.
+      # * <tt>creditcard</tt> -- The CreditCard details for the transaction.
+      # * <tt>options</tt> -- A hash of optional parameters.
+      #
+      # ==== Options
+      #
+      # * <tt>:order_id</tt> -- The application generated order identifier. (REQUIRED)
       def purchase(money, credit_card, options = {})
         requires!(options, :order_id)
         
         request = build_purchase_or_authorization_request(:purchase, money, credit_card, options) 
         commit(request)
-      end     
+      end
       
-      private           
-      def commit(request)        
+      # Captures the funds from an authorized transaction.
+      #
+      # ==== Parameters
+      #
+      # * <tt>money</tt> -- The amount to be captured.  Either an Integer value in cents or a Money object.
+      # * <tt>authorization</tt> -- The authorization returned from the previous authorize request.
+      #
+      # ==== Options
+      #
+      # * <tt>:order_id</tt> -- The application generated order identifier. (REQUIRED)
+      # * <tt>:pasref</tt> -- The realex payments reference of the original transaction. (REQUIRED)
+      # * <tt>:authcode</tt> -- The authcode of the original transaction. (REQUIRED)
+      def capture(money, authorization, options = {})
+        options.merge!(:authcode => authorization)
+        requires!(options, :authcode)
+        requires!(options, :pasref)
+        requires!(options, :order_id)
+        
+        request = build_settle_request(options) 
+        commit(request)
+      end
+      
+      # Credit an account.
+      #
+      # This transaction is also referred to as a Refund (or Rebate) and indicates to the gateway that
+      # money should flow from the merchant to the customer.
+      #
+      # ==== Parameters
+      #
+      # * <tt>money</tt> -- The amount to be credited to the customer. Either an Integer value in cents or a Money object.
+      # * <tt>identification</tt> -- The ID of the original transaction against which the credit is being issued.
+      # * <tt>options</tt> -- A hash of parameters.
+      #
+      # ==== Options
+      #
+      # * <tt>:order_id</tt> -- The application generated order identifier. (REQUIRED)
+      # * <tt>:pasref</tt> -- The realex payments reference of the original transaction. (REQUIRED)
+      # * <tt>:authcode</tt> -- The authcode of the original transaction. (REQUIRED)
+      def credit(money, identification, options = {})
+        options.merge!(:order_id => identification)
+        requires!(options, :pasref)
+        requires!(options, :authcode)
+        
+        request = build_rebate_request(money, options) 
+        commit(request)
+      end
+      
+      # Void a previous transaction
+      #
+      # ==== Parameters
+      #
+      # * <tt>authorization</tt> - The authorization returned from the previous authorize request.
+      #
+      # ==== Options
+      #
+      # * <tt>:order_id</tt> -- The application generated order identifier. (REQUIRED)
+      # * <tt>:pasref</tt> -- The realex payments reference of the original transaction. (REQUIRED)
+      # * <tt>:authcode</tt> -- The authcode of the original transaction. (REQUIRED)
+      def void(identification, options = {})
+        options.merge!(:order_id => identification)
+        requires!(options, :order_id)
+        requires!(options, :pasref)
+        requires!(options, :authcode)
+        
+        request = build_void_request(options) 
+        commit(request)
+      end
+
+      private
+      def commit(request)
         response = parse(ssl_post(URL, request))
 
         Response.new(response[:result] == "00", message_from(response), response,
@@ -145,6 +247,107 @@ module ActiveMerchant
           end
         end
 
+        xml.target!
+      end
+      
+      # <request timestamp="20010427124312" type="rebate"> 
+      #  <merchantid>your merchant id</merchantid>  
+      #  <account>original account</account>  
+      #  <orderid>original order id</orderid>  
+      #  <pasref>original realex payments ref</pasref>  
+      #  <authcode>original authcode</authcode>  
+      #  <amount currency="EUR">3000</amount>  
+      #  <refundhash>738e83....3434ddae662a</refundhash> 
+      #  <autosettle flag="1" />  
+      #  <comments> 
+      #   <comment id="1">comment 1</comment>  
+      #   <comment id="2">comment 2</comment>  
+      #  </comments> 
+      #  <sha1hash>748328aed83....34789ade7</sha1hash>   
+      #  <md5hash>738e83....34ae662a</md5hash>  
+      # </request> 
+      def build_rebate_request(money, options)
+        timestamp = Time.now.strftime('%Y%m%d%H%M%S')
+        
+        xml = Builder::XmlMarkup.new :indent => 2
+        xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'rebate' do
+          xml.tag! 'merchantid', @options[:login] 
+          xml.tag! 'account', @options[:account]
+          xml.tag! 'orderid', sanitize_order_id(options[:order_id])
+          xml.tag! 'pasref', options[:pasref]
+          xml.tag! 'authcode', options[:authcode]
+          xml.tag! 'amount', amount(money), 'currency' => options[:currency] || currency(money)
+          xml.tag! 'refundhash', Digest::SHA1.hexdigest(@options[:rebate_secret])
+          xml.tag! 'autosettle', 'flag' => 1          
+          xml.tag! 'comments' do
+            xml.tag! 'comment', options[:description], 'id' => 1 
+            xml.tag! 'comment', 'id' => 2
+          end
+          xml.tag! 'sha1hash', sha1from("#{timestamp}.#{@options[:login]}.#{sanitize_order_id(options[:order_id])}.#{amount(money)}.#{options[:currency] || currency(money)}")
+        end
+        xml.target!
+      end
+      
+      # <request timestamp="20010427014523" type="void"> 
+      #  <merchantid>your merchant id</merchantid>  
+      #  <account>account to use</account>  
+      #  <orderid>original order id</orderid>  
+      #  <pasref>original realex payments reference</pasref>  
+      #  <authcode>original authcode</authcode>  
+      #  <comments> 
+      #   <comment id="1">comment 1</comment>  
+      #   <comment id="2">comment 2</comment>  
+      #  </comments> 
+      #  <sha1hash>7384ae67....ac7d7d</sha1hash>  
+      #  <md5hash>34e7....a77d</md5hash>  
+      # </request> 
+      def build_void_request(options)
+        timestamp = Time.now.strftime('%Y%m%d%H%M%S')
+        
+        xml = Builder::XmlMarkup.new :indent => 2
+        xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'void' do
+          xml.tag! 'merchantid', @options[:login]
+          xml.tag! 'account', @options[:account]
+          xml.tag! 'orderid', sanitize_order_id(options[:order_id])
+          xml.tag! 'pasref', options[:pasref]
+          xml.tag! 'authcode', options[:authcode]
+          xml.tag! 'comments' do
+            xml.tag! 'comment', options[:description], 'id' => 1 
+            xml.tag! 'comment', 'id' => 2
+          end
+          xml.tag! 'sha1hash', sha1from("#{timestamp}.#{@options[:login]}.#{sanitize_order_id(options[:order_id])}")
+        end
+        xml.target!
+      end
+      
+      # <request timestamp="20010427014523" type="settle"> 
+      #  <merchantid>your merchant id</merchantid>  
+      #  <account>account to use</account>  
+      #  <orderid>original order id</orderid>  
+      #  <pasref>original realex payments reference</pasref>  
+      #  <authcode>original authcode</authcode>  
+      #  <comments> 
+      #   <comment id="1">comment 1</comment>  
+      #   <comment id="2">comment 2</comment>  
+      #  </comments> 
+      #  <sha1hash>7384ae67....ac7d7d</sha1hash>  
+      # </request> 
+      def build_settle_request(options)
+        timestamp = Time.now.strftime('%Y%m%d%H%M%S')
+        
+        xml = Builder::XmlMarkup.new :indent => 2
+        xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'settle' do
+          xml.tag! 'merchantid', @options[:login]
+          xml.tag! 'account', @options[:account]
+          xml.tag! 'orderid', sanitize_order_id(options[:order_id])
+          xml.tag! 'pasref', options[:pasref]
+          xml.tag! 'authcode', options[:authcode]
+          xml.tag! 'comments' do
+            xml.tag! 'comment', options[:description], 'id' => 1 
+            xml.tag! 'comment', 'id' => 2
+          end
+          xml.tag! 'sha1hash', sha1from("#{timestamp}.#{@options[:login]}.#{sanitize_order_id(options[:order_id])}")
+        end
         xml.target!
       end
       
