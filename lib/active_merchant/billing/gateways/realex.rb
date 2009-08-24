@@ -42,7 +42,7 @@ module ActiveMerchant
       BANK_ERROR = REALEX_ERROR  = "Gateway is in maintenance. Please try again later."
       ERROR = CLIENT_DEACTIVATED = "Gateway Error"
       
-      # Unique to the Realex gateway, it requires a separate secret password used to provide refunds/credits.
+      # Unique to the Realex gateway, it requires a separate secret password used to provide credits/refunds.
       attr_accessor :refundhash
       
       def initialize(options = {})
@@ -195,7 +195,7 @@ module ActiveMerchant
       end
 
       def build_purchase_or_authorization_request(action, money, credit_card, options)
-        timestamp = Time.now.strftime('%Y%m%d%H%M%S')
+        timestamp = self.class.timestamp
         
         xml = Builder::XmlMarkup.new :indent => 2
         xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'auth' do
@@ -267,7 +267,7 @@ module ActiveMerchant
       #  <md5hash>738e83....34ae662a</md5hash>  
       # </request> 
       def build_rebate_request(money, options)
-        timestamp = Time.now.strftime('%Y%m%d%H%M%S')
+        timestamp = self.class.timestamp
         
         xml = Builder::XmlMarkup.new :indent => 2
         xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'rebate' do
@@ -302,7 +302,7 @@ module ActiveMerchant
       #  <md5hash>34e7....a77d</md5hash>  
       # </request> 
       def build_void_request(options)
-        timestamp = Time.now.strftime('%Y%m%d%H%M%S')
+        timestamp = self.class.timestamp
         
         xml = Builder::XmlMarkup.new :indent => 2
         xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'void' do
@@ -333,7 +333,7 @@ module ActiveMerchant
       #  <sha1hash>7384ae67....ac7d7d</sha1hash>  
       # </request> 
       def build_settle_request(options)
-        timestamp = Time.now.strftime('%Y%m%d%H%M%S')
+        timestamp = self.class.timestamp
         
         xml = Builder::XmlMarkup.new :indent => 2
         xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'settle' do
@@ -342,9 +342,10 @@ module ActiveMerchant
           xml.tag! 'orderid', sanitize_order_id(options[:order_id])
           xml.tag! 'pasref', options[:pasref]
           xml.tag! 'authcode', options[:authcode]
-          xml.tag! 'comments' do
-            xml.tag! 'comment', options[:description], 'id' => 1 
-            xml.tag! 'comment', 'id' => 2
+          if options[:description]
+            xml.tag! 'comments' do
+              xml.tag! 'comment', options[:description], 'id' => 1 
+            end
           end
           xml.tag! 'sha1hash', sha1from("#{timestamp}.#{@options[:login]}.#{sanitize_order_id(options[:order_id])}")
         end
@@ -397,6 +398,10 @@ module ActiveMerchant
       
       def sanitize_order_id(order_id)
         order_id.to_s.gsub(/[^a-zA-Z0-9\-_]/, '')
+      end
+      
+      def self.timestamp
+        Time.now.strftime('%Y%m%d%H%M%S')
       end
     end
   end

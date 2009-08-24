@@ -3,14 +3,20 @@ require 'digest/sha1'
 
 class RealexTest < Test::Unit::TestCase
   
+  class ActiveMerchant::Billing::RealexGateway
+    # For the purposes of testing, lets redefine some protected methods as public.
+    public :build_purchase_or_authorization_request, :build_rebate_request, :build_void_request, :build_settle_request
+  end
+  
   def setup
     @login = 'your_merchant_id'
     @password = 'your_secret'
+    @account = 'your_account'
     
     @gateway = RealexGateway.new(
-      :login => @merchant_id,
-      :password => @secret,
-      :account => ''
+      :login => @login,
+      :password => @password,
+      :account => @account
     )
 
     @gateway_with_account = RealexGateway.new(
@@ -34,7 +40,6 @@ class RealexTest < Test::Unit::TestCase
     
     @amount = 100
   end
-  
   
   def test_in_test
     assert_equal :test, ActiveMerchant::Billing::Base.gateway_mode
@@ -107,6 +112,29 @@ class RealexTest < Test::Unit::TestCase
   
     response = @gateway.purchase(@amount, @credit_card, @options)
     assert_equal 'M', response.cvv_result['code']
+  end
+  
+  def test_capture_xml
+    options = {
+      :pasref => '1234',
+      :authcode => '1234',
+      :order_id => '1'
+    }
+    
+    ActiveMerchant::Billing::RealexGateway.expects(:timestamp).returns('20090824160201')
+    
+    valid_capture_xml = <<-SRC
+<request timestamp="20090824160201" type="settle">
+  <merchantid>your_merchant_id</merchantid>
+  <account>your_account</account>
+  <orderid>1</orderid>
+  <pasref>1234</pasref>
+  <authcode>1234</authcode>
+  <sha1hash>a28e8d7ae105d98f8cf1a014786aed77bde6485a</sha1hash>
+</request>
+SRC
+    
+    assert_equal valid_capture_xml, @gateway.build_settle_request(options)    
   end
   
   private
