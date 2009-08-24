@@ -64,7 +64,7 @@ module ActiveMerchant
       def authorize(money, creditcard, options = {})
         requires!(options, :order_id)
         
-        request = build_purchase_or_authorization_request(:auth, money, credit_card, options) 
+        request = build_purchase_or_authorization_request(:authorization, money, credit_card, options) 
         commit(request)
       end
       
