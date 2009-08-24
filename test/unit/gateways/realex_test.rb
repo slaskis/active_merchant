@@ -139,7 +139,47 @@ SRC
   end
   
   def test_purchase_xml
-    
+    options = {
+      :order_id => '1'
+    }
+
+    ActiveMerchant::Billing::RealexGateway.expects(:timestamp).returns('20090824160201')
+
+    valid_purchase_request_xml = <<-SRC
+<request timestamp="20090824160201" type="auth">
+  <merchantid>your_merchant_id</merchantid>
+  <account>your_account</account>
+  <orderid>1</orderid>
+  <amount currency=\"EUR\">100</amount>
+  <card>
+    <number>4263971921001307</number>
+    <expdate>0808</expdate>
+    <type>VISA</type>
+    <chname>Longbob Longsen</chname>
+    <issueno></issueno>
+    <cvn>
+      <number></number>
+      <presind></presind>
+    </cvn>
+  </card>
+  <autosettle flag="1"/>
+  <sha1hash>3499d7bc8dbacdcfba2286bd74916d026bae630f</sha1hash>
+  <tssinfo>
+    <address type="billing">
+      <code></code>
+      <country></country>
+    </address>
+    <address type="shipping">
+      <code></code>
+      <country></country>
+    </address>
+    <custnum></custnum>
+    <prodid></prodid>
+  </tssinfo>
+</request>
+SRC
+
+    assert_equal valid_purchase_request_xml, @gateway.build_purchase_or_authorization_request(:purchase, @amount, @credit_card, options)
   end
   
   def test_void_xml
@@ -166,7 +206,47 @@ SRC
   end
   
   def test_auth_xml
-    
+    options = {
+      :order_id => '1'
+    }
+
+    ActiveMerchant::Billing::RealexGateway.expects(:timestamp).returns('20090824160201')
+
+    valid_auth_request_xml = <<-SRC
+<request timestamp="20090824160201" type="auth">
+  <merchantid>your_merchant_id</merchantid>
+  <account>your_account</account>
+  <orderid>1</orderid>
+  <amount currency=\"EUR\">100</amount>
+  <card>
+    <number>4263971921001307</number>
+    <expdate>0808</expdate>
+    <type>VISA</type>
+    <chname>Longbob Longsen</chname>
+    <issueno></issueno>
+    <cvn>
+      <number></number>
+      <presind></presind>
+    </cvn>
+  </card>
+  <autosettle flag="0"/>
+  <sha1hash>3499d7bc8dbacdcfba2286bd74916d026bae630f</sha1hash>
+  <tssinfo>
+    <address type="billing">
+      <code></code>
+      <country></country>
+    </address>
+    <address type="shipping">
+      <code></code>
+      <country></country>
+    </address>
+    <custnum></custnum>
+    <prodid></prodid>
+  </tssinfo>
+</request>
+SRC
+
+    assert_equal valid_auth_request_xml, @gateway.build_purchase_or_authorization_request(:authorization, @amount, @credit_card, options)
   end
   
   def test_credit_xml

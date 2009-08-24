@@ -218,9 +218,10 @@ module ActiveMerchant
           
           xml.tag! 'autosettle', 'flag' => auto_settle_flag(action)
           xml.tag! 'sha1hash', sha1from("#{timestamp}.#{@options[:login]}.#{sanitize_order_id(options[:order_id])}.#{amount(money)}.#{options[:currency] || currency(money)}.#{credit_card.number}")
-          xml.tag! 'comments' do
-            xml.tag! 'comment', options[:description], 'id' => 1 
-            xml.tag! 'comment', 'id' => 2
+          if options[:description]
+            xml.tag! 'comments' do
+              xml.tag! 'comment', options[:description], 'id' => 1 
+            end
           end
           
           billing_address = options[:billing_address] || options[:address] || {}
@@ -240,7 +241,7 @@ module ActiveMerchant
             xml.tag! 'custnum', options[:customer]
             
             xml.tag! 'prodid', options[:invoice]
-            xml.tag! 'varref'
+            # xml.tag! 'varref'
           end
         end
 
