@@ -17,8 +17,7 @@ class RealexTest < Test::Unit::TestCase
     @gateway = RealexGateway.new(
       :login => @login,
       :password => @password,
-      :account => @account,
-      :rebate_secret => @rebate_secret
+      :account => @account
     )
 
     @gateway_with_account = RealexGateway.new(
@@ -171,6 +170,38 @@ SRC
   end
   
   def test_credit_xml
+    gateway = RealexGateway.new(:login => @login, :password => @password, :account => @account)
+    
+    
+    options = {
+      :pasref => '1234',
+      :authcode => '1234',
+      :order_id => '1'
+    }
+
+    ActiveMerchant::Billing::RealexGateway.expects(:timestamp).returns('20090824160201')
+
+    valid_credit_request_xml = <<-SRC
+<request timestamp="20090824160201" type="rebate">
+  <merchantid>your_merchant_id</merchantid>
+  <account>your_account</account>
+  <orderid>1</orderid>
+  <pasref>1234</pasref>
+  <authcode>1234</authcode>
+  <amount currency="EUR">100</amount>
+  <autosettle flag="1"/>
+  <sha1hash>d232c3488b3822efd4f0f97bb8d6df9774cf97f7</sha1hash>
+</request>
+SRC
+
+    assert_equal valid_credit_request_xml, @gateway.build_rebate_request(@amount, options)
+
+  end
+  
+  def test_credit_with_rebate_secret_xml
+    
+    gateway = RealexGateway.new(:login => @login, :password => @password, :account => @account, :rebate_secret => @rebate_secret)
+    
     options = {
       :pasref => '1234',
       :authcode => '1234',
@@ -193,7 +224,7 @@ SRC
 </request>
 SRC
 
-    assert_equal valid_credit_request_xml, @gateway.build_rebate_request(@amount, options)
+    assert_equal valid_credit_request_xml, gateway.build_rebate_request(@amount, options)
 
   end
   

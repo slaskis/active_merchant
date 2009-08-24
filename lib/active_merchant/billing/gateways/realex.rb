@@ -124,9 +124,7 @@ module ActiveMerchant
       # * <tt>:order_id</tt> -- The application generated order identifier. (REQUIRED)
       # * <tt>:pasref</tt> -- The realex payments reference of the original transaction. (REQUIRED)
       # * <tt>:authcode</tt> -- The authcode of the original transaction. (REQUIRED)
-      def credit(money, identification, options = {})
-        raise StandardError.new("Realex Gateway option :rebate_secret must be set to perform a credit") unless @options[:refund_hash]
-        
+      def credit(money, identification, options = {})        
         options.merge!(:order_id => identification)
         requires!(options, :pasref)
         requires!(options, :authcode)
@@ -260,7 +258,7 @@ module ActiveMerchant
           xml.tag! 'pasref', options[:pasref]
           xml.tag! 'authcode', options[:authcode]
           xml.tag! 'amount', amount(money), 'currency' => options[:currency] || currency(money)
-          xml.tag! 'refundhash', @options[:refund_hash]
+          xml.tag! 'refundhash', @options[:refund_hash] if @options[:refund_hash]
           xml.tag! 'autosettle', 'flag' => 1          
           if options[:description]
             xml.tag! 'comments' do
