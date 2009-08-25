@@ -5,7 +5,7 @@ class RealexTest < Test::Unit::TestCase
   
   class ActiveMerchant::Billing::RealexGateway
     # For the purposes of testing, lets redefine some protected methods as public.
-    public :build_purchase_or_authorization_request, :build_rebate_request, :build_void_request, :build_settle_request, :prepare_hash
+    public :build_purchase_or_authorization_request, :build_credit_request, :build_void_request, :build_capture_request, :stringify_values
   end
   
   def setup
@@ -46,22 +46,6 @@ class RealexTest < Test::Unit::TestCase
     assert_equal :test, ActiveMerchant::Billing::Base.gateway_mode
   end  
   
-  # This isn't a unit test!
-  #
-  # def test_hash
-  #   result =  Digest::SHA1.hexdigest("20061213105925.yourmerchantid.1.400.EUR.4263971921001307")
-  #   assert_equal "6bbce4d13f8e830401db4ee530eecb060bc50f64", result
-  #   
-  #   #add the secret to the end
-  #   result = Digest::SHA1.hexdigest(result + "." + @password)
-  #   assert_equal "06a8b619cbd76024676401e5a83e7e5453521af3", result
-  # end
-  
-  def test_prepare_hash
-    hash_prepared = @gateway.prepare_hash('20061213105925', 'yourmerchantid', 1, 400, 'EUR', '4263971921001307')
-    assert_equal "bea15f25c19863e20b7680dc24e7f5487b3918a7", hash_prepared
-  end
-
   def test_successful_purchase
     @gateway.expects(:ssl_post).returns(successful_purchase_response)
     
@@ -142,7 +126,7 @@ class RealexTest < Test::Unit::TestCase
 </request>
 SRC
     
-    assert_equal valid_capture_xml, @gateway.build_settle_request(options)
+    assert_equal valid_capture_xml, @gateway.build_capture_request(options)
   end
   
   def test_purchase_xml
@@ -180,8 +164,6 @@ SRC
       <code></code>
       <country></country>
     </address>
-    <custnum></custnum>
-    <prodid></prodid>
   </tssinfo>
 </request>
 SRC
@@ -247,8 +229,6 @@ SRC
       <code></code>
       <country></country>
     </address>
-    <custnum></custnum>
-    <prodid></prodid>
   </tssinfo>
 </request>
 SRC
@@ -281,7 +261,7 @@ SRC
 </request>
 SRC
 
-    assert_equal valid_credit_request_xml, @gateway.build_rebate_request(@amount, options)
+    assert_equal valid_credit_request_xml, @gateway.build_credit_request(@amount, options)
 
   end
   
@@ -311,8 +291,19 @@ SRC
 </request>
 SRC
 
-    assert_equal valid_credit_request_xml, gateway.build_rebate_request(@amount, options)
+    assert_equal valid_credit_request_xml, gateway.build_credit_request(@amount, options)
 
+  end
+  
+  def test_stringify_values
+    assert_equal "timestamp.merchantid.orderid.ammount.currency.creditcard", 
+      @gateway.stringify_values(["timestamp","merchantid", "orderid", "ammount", "currency", "creditcard"])
+    
+    assert_equal "timestamp.merchantid.orderid.ammount.currency.", 
+      @gateway.stringify_values(["timestamp","merchantid", "orderid", "ammount", "currency"])
+    
+    assert_equal "timestamp.merchantid.orderid...", 
+      @gateway.stringify_values(["timestamp","merchantid", "orderid"])
   end
   
   private

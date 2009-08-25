@@ -104,7 +104,7 @@ module ActiveMerchant
         requires!(options, :pasref)
         requires!(options, :order_id)
         
-        request = build_settle_request(options) 
+        request = build_capture_request(options) 
         commit(request)
       end
       
@@ -129,7 +129,7 @@ module ActiveMerchant
         requires!(options, :pasref)
         requires!(options, :authcode)
         
-        request = build_rebate_request(money, options)
+        request = build_credit_request(money, options)
         commit(request)
       end
       
@@ -190,135 +190,139 @@ module ActiveMerchant
         card_number = REXML::XPath.first(xml, '/request/card/number')
         card_number && card_number.text
       end
-
-      def prepare_hash(*values)
-        str = values.join(".")
-        sha1from(str)
-      end
       
       def build_purchase_or_authorization_request(action, money, credit_card, options)
         timestamp = self.class.timestamp
-        
-        hash = prepare_hash(timestamp,@options[:login], sanitize_order_id(options[:order_id]), 
-                            amount(money), (options[:currency] || currency(money)), credit_card.number)
-                            
         xml = Builder::XmlMarkup.new :indent => 2
         xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'auth' do
-      
-          xml.tag! 'merchantid', @options[:login] 
-          xml.tag! 'account', @options[:account]
-      
+          add_merchant_details(xml)
           xml.tag! 'orderid', sanitize_order_id(options[:order_id])
-          xml.tag! 'amount', amount(money), 'currency' => options[:currency] || currency(money)
-
-          xml.tag! 'card' do
-            xml.tag! 'number', credit_card.number
-            xml.tag! 'expdate', expiry_date(credit_card)
-            xml.tag! 'chname', credit_card.name
-            xml.tag! 'type', CARD_MAPPING[card_brand(credit_card).to_s]
-            xml.tag! 'issueno', credit_card.issue_number
-            
-            xml.tag! 'cvn' do
-              xml.tag! 'number', credit_card.verification_value
-              xml.tag! 'presind', credit_card.verification_value? ? 1 : nil
-            end
-          end
-          
+          add_ammount(xml, money, options)
+          add_card(xml, credit_card)
           xml.tag! 'autosettle', 'flag' => auto_settle_flag(action)
-          xml.tag! 'sha1hash', hash
-          #  #xml.tag! 'sha1hash', sha1from("#{timestamp}.#{@options[:login]}.#{sanitize_order_id(options[:order_id])}.#{amount(money)}.#{options[:currency] || currency(money)}.#{credit_card.number}")
-          
-          if options[:description]
-            xml.tag! 'comments' do
-              xml.tag! 'comment', options[:description], 'id' => 1 
-            end
-          end
-          
-          billing_address = options[:billing_address] || options[:address] || {}
-          shipping_address = options[:shipping_address] || {}
-          
-          xml.tag! 'tssinfo' do
-            xml.tag! 'address', 'type' => 'billing' do
-              xml.tag! 'code', billing_address[:zip]
-              xml.tag! 'country', billing_address[:country]
-            end
-          
-            xml.tag! 'address', 'type' => 'shipping' do
-              xml.tag! 'code', shipping_address[:zip]
-              xml.tag! 'country', shipping_address[:country]
-            end
-            
-            xml.tag! 'custnum', options[:customer]
-            
-            xml.tag! 'prodid', options[:invoice]
-            # xml.tag! 'varref'
-          end
+          add_signed_digest(xml, timestamp, @options[:login], options[:order_id], amount(money), (options[:currency] || currency(money)), credit_card.number)
+          add_comments(xml, options)
+          add_addresses(xml, options)
         end
-
         xml.target!
       end
       
-      def build_rebate_request(money, options)
+      def build_capture_request(options)
         timestamp = self.class.timestamp
-        
+        xml = Builder::XmlMarkup.new :indent => 2
+        xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'settle' do
+          add_merchant_details(xml)
+          add_transaction_identifiers(xml, options)
+          add_comments(xml, options)
+          add_signed_digest(xml, timestamp, @options[:login], options[:order_id])
+        end
+        xml.target!
+      end
+      
+      def build_credit_request(money, options)
+        timestamp = self.class.timestamp
         xml = Builder::XmlMarkup.new :indent => 2
         xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'rebate' do
-          xml.tag! 'merchantid', @options[:login] 
-          xml.tag! 'account', @options[:account]
-          xml.tag! 'orderid', sanitize_order_id(options[:order_id])
-          xml.tag! 'pasref', options[:pasref]
-          xml.tag! 'authcode', options[:authcode]
+          add_merchant_details(xml)
+          add_transaction_identifiers(xml, options)
           xml.tag! 'amount', amount(money), 'currency' => options[:currency] || currency(money)
           xml.tag! 'refundhash', @options[:refund_hash] if @options[:refund_hash]
           xml.tag! 'autosettle', 'flag' => 1          
-          if options[:description]
-            xml.tag! 'comments' do
-              xml.tag! 'comment', options[:description], 'id' => 1 
-            end
-          end
-          xml.tag! 'sha1hash', sha1from("#{timestamp}.#{@options[:login]}.#{sanitize_order_id(options[:order_id])}.#{amount(money)}.#{options[:currency] || currency(money)}.")
+          add_comments(xml, options)
+          add_signed_digest(xml, timestamp, @options[:login], options[:order_id], amount(money), (options[:currency] || currency(money)))
         end
         xml.target!
       end
       
       def build_void_request(options)
         timestamp = self.class.timestamp
-        
         xml = Builder::XmlMarkup.new :indent => 2
         xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'void' do
-          xml.tag! 'merchantid', @options[:login]
-          xml.tag! 'account', @options[:account]
-          xml.tag! 'orderid', sanitize_order_id(options[:order_id])
-          xml.tag! 'pasref', options[:pasref]
-          xml.tag! 'authcode', options[:authcode]
-          if options[:description]
-            xml.tag! 'comments' do
-              xml.tag! 'comment', options[:description], 'id' => 1 
-            end
-          end
-          xml.tag! 'sha1hash', sha1from("#{timestamp}.#{@options[:login]}.#{sanitize_order_id(options[:order_id])}...")
+          add_merchant_details(xml)
+          add_transaction_identifiers(xml, options)
+          add_comments(xml, options)
+          add_signed_digest(xml, timestamp, @options[:login], options[:order_id])
         end
         xml.target!
       end
       
-      def build_settle_request(options)
-        timestamp = self.class.timestamp
+      def add_addresses(xml, options)
+        billing_address = options[:billing_address] || options[:address] || {}
+        shipping_address = options[:shipping_address] || {}
         
-        xml = Builder::XmlMarkup.new :indent => 2
-        xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'settle' do
-          xml.tag! 'merchantid', @options[:login]
-          xml.tag! 'account', @options[:account]
-          xml.tag! 'orderid', sanitize_order_id(options[:order_id])
-          xml.tag! 'pasref', options[:pasref]
-          xml.tag! 'authcode', options[:authcode]
-          if options[:description]
-            xml.tag! 'comments' do
-              xml.tag! 'comment', options[:description], 'id' => 1 
+        return unless billing_address || shipping_address || options[:customer] || options[:invoice]
+        
+        xml.tag! 'tssinfo' do
+          
+          xml.tag! 'custnum', options[:customer] if options[:customer]
+          xml.tag! 'prodid', options[:invoice] if options[:invoice]
+          # xml.tag! 'varref' 
+          
+          if billing_address
+            xml.tag! 'address', 'type' => 'billing' do
+              xml.tag! 'code', billing_address[:zip]
+              xml.tag! 'country', billing_address[:country]
             end
           end
-          xml.tag! 'sha1hash', sha1from("#{timestamp}.#{@options[:login]}.#{sanitize_order_id(options[:order_id])}...")
+          
+          if shipping_address
+            xml.tag! 'address', 'type' => 'shipping' do
+              xml.tag! 'code', shipping_address[:zip]
+              xml.tag! 'country', shipping_address[:country]
+            end
+          end
+          
         end
-        xml.target!
+      end
+      
+      def add_merchant_details(xml)
+        xml.tag! 'merchantid', @options[:login] 
+        xml.tag! 'account', @options[:account]
+      end
+      
+      def add_transaction_identifiers(xml, options)
+        xml.tag! 'orderid', sanitize_order_id(options[:order_id])
+        xml.tag! 'pasref', options[:pasref]
+        xml.tag! 'authcode', options[:authcode]
+      end
+      
+      def add_comments(xml, options)
+        return unless options[:description]
+        xml.tag! 'comments' do
+          xml.tag! 'comment', options[:description], 'id' => 1 
+        end
+      end
+      
+      def add_ammount(xml, money, options)
+        xml.tag! 'amount', amount(money), 'currency' => options[:currency] || currency(money)
+      end
+      
+      def add_card(xml, credit_card)
+        xml.tag! 'card' do
+          xml.tag! 'number', credit_card.number
+          xml.tag! 'expdate', expiry_date(credit_card)
+          xml.tag! 'chname', credit_card.name
+          xml.tag! 'type', CARD_MAPPING[card_brand(credit_card).to_s]
+          xml.tag! 'issueno', credit_card.issue_number
+          xml.tag! 'cvn' do
+            xml.tag! 'number', credit_card.verification_value
+            xml.tag! 'presind', credit_card.verification_value? ? 1 : nil
+          end
+        end
+      end
+      
+      def stringify_values(values)
+        string = ""
+        (0..5).each do |i|
+          string << "#{values[i]}"
+          string << "." unless i == 5
+        end
+        string
+      end
+      
+      def add_signed_digest(xml, *values)
+        string = stringify_values(values)
+        xml.tag! 'sha1hash', sha1from(string)
       end
       
       def auto_settle_flag(action)
