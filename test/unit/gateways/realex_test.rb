@@ -46,18 +46,20 @@ class RealexTest < Test::Unit::TestCase
     assert_equal :test, ActiveMerchant::Billing::Base.gateway_mode
   end  
   
-  def test_hash
-    result =  Digest::SHA1.hexdigest("20061213105925.yourmerchantid.1.400.EUR.4263971921001307")
-    assert_equal "6bbce4d13f8e830401db4ee530eecb060bc50f64", result
-    
-    #add the secret to the end
-    result = Digest::SHA1.hexdigest(result + "." + @password)
-    assert_equal "06a8b619cbd76024676401e5a83e7e5453521af3", result
-  end
+  # This isn't a unit test!
+  #
+  # def test_hash
+  #   result =  Digest::SHA1.hexdigest("20061213105925.yourmerchantid.1.400.EUR.4263971921001307")
+  #   assert_equal "6bbce4d13f8e830401db4ee530eecb060bc50f64", result
+  #   
+  #   #add the secret to the end
+  #   result = Digest::SHA1.hexdigest(result + "." + @password)
+  #   assert_equal "06a8b619cbd76024676401e5a83e7e5453521af3", result
+  # end
   
   def test_prepare_hash
     hash_prepared = @gateway.prepare_hash('20061213105925', 'yourmerchantid', 1, 400, 'EUR', '4263971921001307')
-    assert_equal "", hash_prepared
+    assert_equal "bea15f25c19863e20b7680dc24e7f5487b3918a7", hash_prepared
   end
 
   def test_successful_purchase
@@ -159,8 +161,8 @@ SRC
   <card>
     <number>4263971921001307</number>
     <expdate>0808</expdate>
-    <type>VISA</type>
     <chname>Longbob Longsen</chname>
+    <type>VISA</type>
     <issueno></issueno>
     <cvn>
       <number></number>
@@ -226,8 +228,8 @@ SRC
   <card>
     <number>4263971921001307</number>
     <expdate>0808</expdate>
-    <type>VISA</type>
     <chname>Longbob Longsen</chname>
+    <type>VISA</type>
     <issueno></issueno>
     <cvn>
       <number></number>

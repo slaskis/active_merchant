@@ -224,34 +224,35 @@ module ActiveMerchant
             end
           end
           
-       xml.tag! 'autosettle', 'flag' => auto_settle_flag(action)
-       xml.tag! 'sha1hash', hash
-       #  #xml.tag! 'sha1hash', sha1from("#{timestamp}.#{@options[:login]}.#{sanitize_order_id(options[:order_id])}.#{amount(money)}.#{options[:currency] || currency(money)}.#{credit_card.number}")
-       #  if options[:description]
-       #    xml.tag! 'comments' do
-       #      xml.tag! 'comment', options[:description], 'id' => 1 
-       #    end
-       #  end
-       #  
-       #  billing_address = options[:billing_address] || options[:address] || {}
-       #  shipping_address = options[:shipping_address] || {}
-       #  
-       #  xml.tag! 'tssinfo' do
-       #    xml.tag! 'address', 'type' => 'billing' do
-       #      xml.tag! 'code', billing_address[:zip]
-       #      xml.tag! 'country', billing_address[:country]
-       #    end
-       #
-       #    xml.tag! 'address', 'type' => 'shipping' do
-       #      xml.tag! 'code', shipping_address[:zip]
-       #      xml.tag! 'country', shipping_address[:country]
-       #    end
-       #    
-       #    xml.tag! 'custnum', options[:customer]
-       #    
-       #    xml.tag! 'prodid', options[:invoice]
-       #    # xml.tag! 'varref'
-       #  end
+          xml.tag! 'autosettle', 'flag' => auto_settle_flag(action)
+          xml.tag! 'sha1hash', hash
+          #  #xml.tag! 'sha1hash', sha1from("#{timestamp}.#{@options[:login]}.#{sanitize_order_id(options[:order_id])}.#{amount(money)}.#{options[:currency] || currency(money)}.#{credit_card.number}")
+          
+          if options[:description]
+            xml.tag! 'comments' do
+              xml.tag! 'comment', options[:description], 'id' => 1 
+            end
+          end
+          
+          billing_address = options[:billing_address] || options[:address] || {}
+          shipping_address = options[:shipping_address] || {}
+          
+          xml.tag! 'tssinfo' do
+            xml.tag! 'address', 'type' => 'billing' do
+              xml.tag! 'code', billing_address[:zip]
+              xml.tag! 'country', billing_address[:country]
+            end
+          
+            xml.tag! 'address', 'type' => 'shipping' do
+              xml.tag! 'code', shipping_address[:zip]
+              xml.tag! 'country', shipping_address[:country]
+            end
+            
+            xml.tag! 'custnum', options[:customer]
+            
+            xml.tag! 'prodid', options[:invoice]
+            # xml.tag! 'varref'
+          end
         end
 
         xml.target!
