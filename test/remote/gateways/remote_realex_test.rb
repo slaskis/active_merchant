@@ -42,6 +42,7 @@ class RemoteRealexTest < Test::Unit::TestCase
           :country => 'US'
         }
       )
+
       assert_not_nil response
       assert_success response
       assert response.test?
@@ -180,7 +181,6 @@ class RemoteRealexTest < Test::Unit::TestCase
     assert_equal RealexGateway::ERROR, response.message
   end
 
-
   def test_realex_expiry_year_error
     @visa.year = 2005
     
@@ -233,4 +233,97 @@ class RemoteRealexTest < Test::Unit::TestCase
     assert response.authorization.length > 0
   end
 
+  def test_realex_authorize
+    response = @gateway.authorize(@amount, @visa, 
+      :order_id => generate_unique_id,
+      :description => 'Test Realex Purchase',
+      :billing_address => {
+        :zip => '90210',
+        :country => 'US'
+      }
+    )
+
+    assert_not_nil response
+    assert_success response
+    assert response.test?
+    assert response.authorization.length > 0
+    assert_equal 'Successful', response.message
+  end
+  
+  def test_realex_authorize_then_capture
+    order_id = generate_unique_id
+    
+    auth_response = @gateway.authorize(@amount, @visa, 
+      :order_id => order_id,
+      :description => 'Test Realex Purchase',
+      :billing_address => {
+        :zip => '90210',
+        :country => 'US'
+      }
+    )
+    
+    capture_response = @gateway.capture(@amount, auth_response.authorization,
+      :order_id => order_id,
+      :pasref => auth_response.params['pasref']
+    )
+    
+    assert_not_nil capture_response
+    assert_success capture_response
+    assert capture_response.test?
+    assert capture_response.authorization.length > 0
+    assert_equal 'Successful', capture_response.message
+    assert_match /Settled Successfully/, capture_response.params['message']
+  end
+  
+  def test_realex_purchase_then_void
+    order_id = generate_unique_id
+    
+    purchase_response = @gateway.purchase(@amount, @visa, 
+      :order_id => order_id,
+      :description => 'Test Realex Purchase',
+      :billing_address => {
+        :zip => '90210',
+        :country => 'US'
+      }
+    )
+    
+    void_response = @gateway.void(order_id,
+      :authcode => purchase_response.authorization,
+      :pasref => purchase_response.params['pasref']
+    )
+    
+    assert_not_nil void_response
+    assert_success void_response
+    assert void_response.test?
+    assert void_response.authorization.length > 0
+    assert_equal 'Successful', void_response.message
+    assert_match /Voided Successfully/, void_response.params['message']
+  end
+  
+  def test_realex_purchase_then_credit
+    order_id = generate_unique_id
+    
+    @gateway_with_refund_password = RealexGateway.new(fixtures(:realex_with_account).merge(:rebate_secret => 'refund'))
+    
+    purchase_response = @gateway_with_refund_password.purchase(@amount, @visa, 
+      :order_id => order_id,
+      :description => 'Test Realex Purchase',
+      :billing_address => {
+        :zip => '90210',
+        :country => 'US'
+      }
+    )
+    
+    rebate_response = @gateway_with_refund_password.credit(@amount, order_id,
+      :authcode => purchase_response.authorization,
+      :pasref => purchase_response.params['pasref']
+    )
+    
+    assert_not_nil rebate_response
+    assert_success rebate_response
+    assert rebate_response.test?
+    assert rebate_response.authorization.length > 0
+    assert_equal 'Successful', rebate_response.message
+  end
+  
 end

@@ -138,7 +138,7 @@ class RealexTest < Test::Unit::TestCase
   <orderid>1</orderid>
   <pasref>1234</pasref>
   <authcode>1234</authcode>
-  <sha1hash>a28e8d7ae105d98f8cf1a014786aed77bde6485a</sha1hash>
+  <sha1hash>4132600f1dc70333b943fc292bd0ca7d8e722f6e</sha1hash>
 </request>
 SRC
     
@@ -205,7 +205,7 @@ SRC
   <orderid>1</orderid>
   <pasref>1234</pasref>
   <authcode>1234</authcode>
-  <sha1hash>a28e8d7ae105d98f8cf1a014786aed77bde6485a</sha1hash>
+  <sha1hash>4132600f1dc70333b943fc292bd0ca7d8e722f6e</sha1hash>
 </request>
 SRC
 
@@ -277,7 +277,7 @@ SRC
   <authcode>1234</authcode>
   <amount currency="EUR">100</amount>
   <autosettle flag="1"/>
-  <sha1hash>d232c3488b3822efd4f0f97bb8d6df9774cf97f7</sha1hash>
+  <sha1hash>ef0a6c485452f3f94aff336fa90c6c62993056ca</sha1hash>
 </request>
 SRC
 
@@ -307,7 +307,7 @@ SRC
   <amount currency="EUR">100</amount>
   <refundhash>f94ff2a7c125a8ad87e5683114ba1e384889240e</refundhash>
   <autosettle flag="1"/>
-  <sha1hash>d232c3488b3822efd4f0f97bb8d6df9774cf97f7</sha1hash>
+  <sha1hash>ef0a6c485452f3f94aff336fa90c6c62993056ca</sha1hash>
 </request>
 SRC
 

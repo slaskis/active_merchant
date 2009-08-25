@@ -64,7 +64,7 @@ module ActiveMerchant
       def authorize(money, creditcard, options = {})
         requires!(options, :order_id)
         
-        request = build_purchase_or_authorization_request(:authorization, money, credit_card, options) 
+        request = build_purchase_or_authorization_request(:authorization, money, creditcard, options) 
         commit(request)
       end
       
@@ -79,10 +79,10 @@ module ActiveMerchant
       # ==== Options
       #
       # * <tt>:order_id</tt> -- The application generated order identifier. (REQUIRED)
-      def purchase(money, credit_card, options = {})
+      def purchase(money, creditcard, options = {})
         requires!(options, :order_id)
         
-        request = build_purchase_or_authorization_request(:purchase, money, credit_card, options)
+        request = build_purchase_or_authorization_request(:purchase, money, creditcard, options)
         commit(request)
       end
       
@@ -98,7 +98,7 @@ module ActiveMerchant
       # * <tt>:order_id</tt> -- The application generated order identifier. (REQUIRED)
       # * <tt>:pasref</tt> -- The realex payments reference of the original transaction. (REQUIRED)
       # * <tt>:authcode</tt> -- The authcode of the original transaction. (REQUIRED)
-      def capture(money, authorization, options = {})        
+      def capture(money, authorization, options = {})
         options.merge!(:authcode => authorization)
         requires!(options, :authcode)
         requires!(options, :pasref)
@@ -124,12 +124,12 @@ module ActiveMerchant
       # * <tt>:order_id</tt> -- The application generated order identifier. (REQUIRED)
       # * <tt>:pasref</tt> -- The realex payments reference of the original transaction. (REQUIRED)
       # * <tt>:authcode</tt> -- The authcode of the original transaction. (REQUIRED)
-      def credit(money, identification, options = {})        
+      def credit(money, identification, options = {})
         options.merge!(:order_id => identification)
         requires!(options, :pasref)
         requires!(options, :authcode)
         
-        request = build_rebate_request(money, options) 
+        request = build_rebate_request(money, options)
         commit(request)
       end
       
@@ -276,7 +276,7 @@ module ActiveMerchant
               xml.tag! 'comment', options[:description], 'id' => 1 
             end
           end
-          xml.tag! 'sha1hash', sha1from("#{timestamp}.#{@options[:login]}.#{sanitize_order_id(options[:order_id])}.#{amount(money)}.#{options[:currency] || currency(money)}")
+          xml.tag! 'sha1hash', sha1from("#{timestamp}.#{@options[:login]}.#{sanitize_order_id(options[:order_id])}.#{amount(money)}.#{options[:currency] || currency(money)}.")
         end
         xml.target!
       end
@@ -296,7 +296,7 @@ module ActiveMerchant
               xml.tag! 'comment', options[:description], 'id' => 1 
             end
           end
-          xml.tag! 'sha1hash', sha1from("#{timestamp}.#{@options[:login]}.#{sanitize_order_id(options[:order_id])}")
+          xml.tag! 'sha1hash', sha1from("#{timestamp}.#{@options[:login]}.#{sanitize_order_id(options[:order_id])}...")
         end
         xml.target!
       end
@@ -316,7 +316,7 @@ module ActiveMerchant
               xml.tag! 'comment', options[:description], 'id' => 1 
             end
           end
-          xml.tag! 'sha1hash', sha1from("#{timestamp}.#{@options[:login]}.#{sanitize_order_id(options[:order_id])}")
+          xml.tag! 'sha1hash', sha1from("#{timestamp}.#{@options[:login]}.#{sanitize_order_id(options[:order_id])}...")
         end
         xml.target!
       end
