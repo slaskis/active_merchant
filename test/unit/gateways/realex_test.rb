@@ -5,7 +5,7 @@ class RealexTest < Test::Unit::TestCase
   
   class ActiveMerchant::Billing::RealexGateway
     # For the purposes of testing, lets redefine some protected methods as public.
-    public :build_purchase_or_authorization_request, :build_rebate_request, :build_void_request, :build_settle_request
+    public :build_purchase_or_authorization_request, :build_rebate_request, :build_void_request, :build_settle_request, :prepare_hash
   end
   
   def setup
@@ -47,12 +47,17 @@ class RealexTest < Test::Unit::TestCase
   end  
   
   def test_hash
-    result =  Digest::SHA1.hexdigest("20061213105925.your_merchant_id.1.400.EUR.4263971921001307")
+    result =  Digest::SHA1.hexdigest("20061213105925.yourmerchantid.1.400.EUR.4263971921001307")
     assert_equal "6bbce4d13f8e830401db4ee530eecb060bc50f64", result
     
     #add the secret to the end
     result = Digest::SHA1.hexdigest(result + "." + @password)
     assert_equal "06a8b619cbd76024676401e5a83e7e5453521af3", result
+  end
+  
+  def test_prepare_hash
+    hash_prepared = @gateway.prepare_hash('20061213105925', 'yourmerchantid', 1, 400, 'EUR', '4263971921001307')
+    assert_equal "", hash_prepared
   end
 
   def test_successful_purchase
@@ -150,7 +155,7 @@ SRC
   <merchantid>your_merchant_id</merchantid>
   <account>your_account</account>
   <orderid>1</orderid>
-  <amount currency=\"EUR\">100</amount>
+  <amount currency="EUR">100</amount>
   <card>
     <number>4263971921001307</number>
     <expdate>0808</expdate>

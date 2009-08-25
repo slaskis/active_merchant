@@ -82,7 +82,7 @@ module ActiveMerchant
       def purchase(money, credit_card, options = {})
         requires!(options, :order_id)
         
-        request = build_purchase_or_authorization_request(:purchase, money, credit_card, options) 
+        request = build_purchase_or_authorization_request(:purchase, money, credit_card, options)
         commit(request)
       end
       
@@ -191,9 +191,17 @@ module ActiveMerchant
         card_number && card_number.text
       end
 
+      def prepare_hash(*values)
+        str = values.join(".")
+        sha1from(str)
+      end
+      
       def build_purchase_or_authorization_request(action, money, credit_card, options)
         timestamp = self.class.timestamp
         
+        hash = prepare_hash(timestamp,@options[:login], sanitize_order_id(options[:order_id]), 
+                            amount(money), (options[:currency] || currency(money)), credit_card.number)
+                            
         xml = Builder::XmlMarkup.new :indent => 2
         xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'auth' do
       
@@ -206,8 +214,8 @@ module ActiveMerchant
           xml.tag! 'card' do
             xml.tag! 'number', credit_card.number
             xml.tag! 'expdate', expiry_date(credit_card)
-            xml.tag! 'type', CARD_MAPPING[card_brand(credit_card).to_s]
             xml.tag! 'chname', credit_card.name
+            xml.tag! 'type', CARD_MAPPING[card_brand(credit_card).to_s]
             xml.tag! 'issueno', credit_card.issue_number
             
             xml.tag! 'cvn' do
@@ -216,33 +224,34 @@ module ActiveMerchant
             end
           end
           
-          xml.tag! 'autosettle', 'flag' => auto_settle_flag(action)
-          xml.tag! 'sha1hash', sha1from("#{timestamp}.#{@options[:login]}.#{sanitize_order_id(options[:order_id])}.#{amount(money)}.#{options[:currency] || currency(money)}.#{credit_card.number}")
-          if options[:description]
-            xml.tag! 'comments' do
-              xml.tag! 'comment', options[:description], 'id' => 1 
-            end
-          end
-          
-          billing_address = options[:billing_address] || options[:address] || {}
-          shipping_address = options[:shipping_address] || {}
-          
-          xml.tag! 'tssinfo' do
-            xml.tag! 'address', 'type' => 'billing' do
-              xml.tag! 'code', billing_address[:zip]
-              xml.tag! 'country', billing_address[:country]
-            end
-
-            xml.tag! 'address', 'type' => 'shipping' do
-              xml.tag! 'code', shipping_address[:zip]
-              xml.tag! 'country', shipping_address[:country]
-            end
-            
-            xml.tag! 'custnum', options[:customer]
-            
-            xml.tag! 'prodid', options[:invoice]
-            # xml.tag! 'varref'
-          end
+       xml.tag! 'autosettle', 'flag' => auto_settle_flag(action)
+       xml.tag! 'sha1hash', hash
+       #  #xml.tag! 'sha1hash', sha1from("#{timestamp}.#{@options[:login]}.#{sanitize_order_id(options[:order_id])}.#{amount(money)}.#{options[:currency] || currency(money)}.#{credit_card.number}")
+       #  if options[:description]
+       #    xml.tag! 'comments' do
+       #      xml.tag! 'comment', options[:description], 'id' => 1 
+       #    end
+       #  end
+       #  
+       #  billing_address = options[:billing_address] || options[:address] || {}
+       #  shipping_address = options[:shipping_address] || {}
+       #  
+       #  xml.tag! 'tssinfo' do
+       #    xml.tag! 'address', 'type' => 'billing' do
+       #      xml.tag! 'code', billing_address[:zip]
+       #      xml.tag! 'country', billing_address[:country]
+       #    end
+       #
+       #    xml.tag! 'address', 'type' => 'shipping' do
+       #      xml.tag! 'code', shipping_address[:zip]
+       #      xml.tag! 'country', shipping_address[:country]
+       #    end
+       #    
+       #    xml.tag! 'custnum', options[:customer]
+       #    
+       #    xml.tag! 'prodid', options[:invoice]
+       #    # xml.tag! 'varref'
+       #  end
         end
 
         xml.target!

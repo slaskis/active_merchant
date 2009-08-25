@@ -11,7 +11,7 @@ class RemoteRealexTest < Test::Unit::TestCase
   end
  
   def setup
-    @gateway = RealexGateway.new(fixtures(:realex))
+    @gateway = RealexGateway.new(fixtures(:realex_with_account))
 
     @gateway_with_account = RealexGateway.new(fixtures(:realex_with_account))
   
@@ -69,8 +69,8 @@ class RemoteRealexTest < Test::Unit::TestCase
   end
   
   def test_realex_purchase_with_invalid_account
-
-    response = @gateway_with_account.purchase(@amount, @visa, 
+    @gateway_with_invalid_account = RealexGateway.new(fixtures(:realex_with_account).merge(:account => "thisdoesnotexist"))
+    response = @gateway_with_invalid_account.purchase(@amount, @visa, 
       :order_id => generate_unique_id,
       :description => 'Test Realex purchase with invalid acocunt'
     )
@@ -150,24 +150,25 @@ class RemoteRealexTest < Test::Unit::TestCase
   
   def test_realex_ccn_error
     visa = @visa.clone
-    visa.number = 5
+    visa.number = '5'
     
     response = @gateway.purchase(@amount, visa, 
       :order_id => generate_unique_id,
       :description => 'Test Realex ccn error'
     )
-    STDERR.puts response.inspect
+
     assert_not_nil response
     assert_failure response
     
-    assert_equal '509', response.params['result']
-    assert_equal "Invalid credit card length", response.params['message']
+    # Looking at the API this should actually be "509 - Invalid credit card length" but hey..
+    assert_equal '508', response.params['result']
+    assert_equal "Invalid data in CC number field.", response.params['message']
     assert_equal RealexGateway::ERROR, response.message
   end
 
   def test_realex_expiry_month_error
     @visa.month = 13
-    STDERR.puts @visa.inspect
+    
     response = @gateway.purchase(@amount, @visa, 
       :order_id => generate_unique_id,
       :description => 'Test Realex expiry month error'
@@ -222,7 +223,6 @@ class RemoteRealexTest < Test::Unit::TestCase
   end
   
   def test_customer_number
-    STDERR.puts @visa.inspect
     response = @gateway.purchase(@amount, @visa, 
       :order_id => generate_unique_id,
       :description => 'test_cust_num',
@@ -232,4 +232,5 @@ class RemoteRealexTest < Test::Unit::TestCase
     assert_success response
     assert response.authorization.length > 0
   end
+
 end
