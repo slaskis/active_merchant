@@ -185,12 +185,6 @@ module ActiveMerchant
         response
       end
       
-      def parse_credit_card_number(request)
-        xml = REXML::Document.new(request)
-        card_number = REXML::XPath.first(xml, '/request/card/number')
-        card_number && card_number.text
-      end
-      
       def build_purchase_or_authorization_request(action, money, credit_card, options)
         timestamp = self.class.timestamp
         xml = Builder::XmlMarkup.new :indent => 2
