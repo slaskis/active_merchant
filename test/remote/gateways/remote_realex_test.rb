@@ -2,23 +2,31 @@ require File.join(File.dirname(__FILE__) + '/../../test_helper')
 
 class RemoteRealexTest < Test::Unit::TestCase
  
+  def valid_card_attributes
+    {:first_name => 'Steve', :last_name => 'Smith', :month => '9', :year => '2010', :type => 'visa', :number => '4242424242424242'}
+  end
+  
+  def create_card(fixture)
+    CreditCard.new valid_card_attributes.merge(fixtures(fixture))
+  end
+ 
   def setup
     @gateway = RealexGateway.new(fixtures(:realex))
 
     @gateway_with_account = RealexGateway.new(fixtures(:realex_with_account))
   
     # Replace the card numbers with the test account numbers from Realex
-    @visa            = fixtures(:realex_visa)
-    @visa_declined   = fixtures(:realex_visa_declined)
-    @visa_referral_b = fixtures(:realex_visa_referral_b)
-    @visa_referral_a = fixtures(:realex_visa_referral_a)
-    @visa_coms_error = fixtures(:realex_visa_coms_error)
+    @visa            = create_card(:realex_visa)
+    @visa_declined   = create_card(:realex_visa_declined)
+    @visa_referral_b = create_card(:realex_visa_referral_b)
+    @visa_referral_a = create_card(:realex_visa_referral_a)
+    @visa_coms_error = create_card(:realex_visa_coms_error)
     
-    @mastercard            = fixtures(:realex_mastercard)
-    @mastercard_declined   = fixtures(:realex_mastercard_declined)
-    @mastercard_referral_b = fixtures(:realex_mastercard_referral_b)
-    @mastercard_referral_a = fixtures(:realex_mastercard_referral_a)
-    @mastercard_coms_error = fixtures(:realex_mastercard_coms_error)
+    @mastercard            = create_card(:realex_mastercard)
+    @mastercard_declined   = create_card(:realex_mastercard_declined)
+    @mastercard_referral_b = create_card(:realex_mastercard_referral_b)
+    @mastercard_referral_a = create_card(:realex_mastercard_referral_a)
+    @mastercard_coms_error = create_card(:realex_mastercard_coms_error)
     
     @amount = 10000
   end
@@ -141,12 +149,14 @@ class RemoteRealexTest < Test::Unit::TestCase
   end
   
   def test_realex_ccn_error
-    @visa.number = 5
+    visa = @visa.clone
+    visa.number = 5
     
-    response = @gateway.purchase(@amount, @visa, 
+    response = @gateway.purchase(@amount, visa, 
       :order_id => generate_unique_id,
       :description => 'Test Realex ccn error'
     )
+    STDERR.puts response.inspect
     assert_not_nil response
     assert_failure response
     
@@ -157,7 +167,7 @@ class RemoteRealexTest < Test::Unit::TestCase
 
   def test_realex_expiry_month_error
     @visa.month = 13
-    
+    STDERR.puts @visa.inspect
     response = @gateway.purchase(@amount, @visa, 
       :order_id => generate_unique_id,
       :description => 'Test Realex expiry month error'
@@ -212,6 +222,7 @@ class RemoteRealexTest < Test::Unit::TestCase
   end
   
   def test_customer_number
+    STDERR.puts @visa.inspect
     response = @gateway.purchase(@amount, @visa, 
       :order_id => generate_unique_id,
       :description => 'test_cust_num',
