@@ -155,16 +155,6 @@ SRC
   </card>
   <autosettle flag="1"/>
   <sha1hash>3499d7bc8dbacdcfba2286bd74916d026bae630f</sha1hash>
-  <tssinfo>
-    <address type="billing">
-      <code></code>
-      <country></country>
-    </address>
-    <address type="shipping">
-      <code></code>
-      <country></country>
-    </address>
-  </tssinfo>
 </request>
 SRC
 
@@ -220,16 +210,6 @@ SRC
   </card>
   <autosettle flag="0"/>
   <sha1hash>3499d7bc8dbacdcfba2286bd74916d026bae630f</sha1hash>
-  <tssinfo>
-    <address type="billing">
-      <code></code>
-      <country></country>
-    </address>
-    <address type="shipping">
-      <code></code>
-      <country></country>
-    </address>
-  </tssinfo>
 </request>
 SRC
 

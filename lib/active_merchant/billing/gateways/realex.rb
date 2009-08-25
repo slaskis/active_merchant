@@ -202,7 +202,7 @@ module ActiveMerchant
           xml.tag! 'autosettle', 'flag' => auto_settle_flag(action)
           add_signed_digest(xml, timestamp, @options[:login], options[:order_id], amount(money), (options[:currency] || currency(money)), credit_card.number)
           add_comments(xml, options)
-          add_addresses(xml, options)
+          add_address_and_customer_info(xml, options)
         end
         xml.target!
       end
@@ -246,16 +246,17 @@ module ActiveMerchant
         xml.target!
       end
       
-      def add_addresses(xml, options)
-        billing_address = options[:billing_address] || options[:address] || {}
-        shipping_address = options[:shipping_address] || {}
+      def add_address_and_customer_info(xml, options)
+        billing_address = options[:billing_address] || options[:address]
+        shipping_address = options[:shipping_address]
         
-        return unless billing_address || shipping_address || options[:customer] || options[:invoice]
+        return unless billing_address || shipping_address || options[:customer] || options[:invoice] || options[:ip]
         
         xml.tag! 'tssinfo' do
           
           xml.tag! 'custnum', options[:customer] if options[:customer]
           xml.tag! 'prodid', options[:invoice] if options[:invoice]
+          xml.tag! 'custipaddress', options[:ip] if options[:ip]
           # xml.tag! 'varref' 
           
           if billing_address
