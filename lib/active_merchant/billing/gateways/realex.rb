@@ -274,7 +274,7 @@ module ActiveMerchant
       
       def add_merchant_details(xml)
         xml.tag! 'merchantid', @options[:login] 
-        xml.tag! 'account', @options[:account]
+        xml.tag! 'account', options[:account] || @options[:account]
       end
       
       def add_transaction_identifiers(xml, options)
