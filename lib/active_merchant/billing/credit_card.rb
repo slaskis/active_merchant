@@ -79,7 +79,14 @@ module ActiveMerchant #:nodoc:
       def name
         "#{@first_name} #{@last_name}"
       end
-            
+      
+      def name=(string)
+        first_name_match = string.match(/^([a-zA-Z]*) /)
+        @first_name = first_name_match[1] if first_name_match
+        last_name_match = string.match(/^[a-zA-Z]* (.*)/)
+        @last_name = last_name_match[1] if last_name_match
+      end
+      
       def verification_value?
         !@verification_value.blank?
       end

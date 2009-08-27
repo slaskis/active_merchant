@@ -257,7 +257,34 @@ class CreditCardTest < Test::Unit::TestCase
     c = CreditCard.new(:first_name => 'James', :last_name => 'Herdman')
     assert c.name?
   end
-
+  
+  def test_should_work_with_a_single_name_attribute
+    c = CreditCard.new(:name => 'John Smith')
+    assert c.name?
+    assert_equal "John", c.first_name
+    assert_equal "Smith", c.last_name
+  end
+  
+  def test_should_work_with_a_single_name_attribute_that_is_double_barrelled
+    c = CreditCard.new(:name => 'John Hammer Smith')
+    assert c.name?
+    assert_equal "John", c.first_name
+    assert_equal "Hammer Smith", c.last_name
+  end
+  
+  def test_should_work_with_a_single_name_attribute_that_is_double_barrell_hyphenated
+    c = CreditCard.new(:name => 'John Hammer-Smith')
+    assert c.name?
+    assert_equal "John", c.first_name
+    assert_equal "Hammer-Smith", c.last_name
+  end
+  
+  def test_should_work_with_a_single_blank_name_attribute
+    c = CreditCard.new(:name => '')
+    assert_false c.first_name?
+    assert_false c.last_name?
+  end
+  
   # The following is a regression for a bug that raised an exception when
   # a new credit card was validated
   def test_validate_new_card
