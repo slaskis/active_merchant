@@ -156,12 +156,14 @@ module ActiveMerchant
 
       private
       def commit(request)
-        response = parse(ssl_post(URL, request))
-
-        Response.new(response[:result] == "00", message_from(response), response,
-          :test => response[:message] =~ /\[ test system \]/,
-          :authorization => response[:authcode],
-          :cvv_result => response[:cvnresult]
+        response = ssl_post(URL, request)
+        parsed = parse(response)
+        
+        Response.new(parsed[:result] == "00", message_from(parsed), parsed,
+          :test => parsed[:message] =~ /\[ test system \]/,
+          :authorization => parsed[:authcode],
+          :cvv_result => parsed[:cvnresult],
+          :raw_response => response
         )      
       end
 
@@ -181,7 +183,7 @@ module ActiveMerchant
           end
 
         end unless xml.root.nil?
-
+        
         response
       end
       

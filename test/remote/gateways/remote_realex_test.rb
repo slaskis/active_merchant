@@ -326,4 +326,9 @@ class RemoteRealexTest < Test::Unit::TestCase
     assert_equal 'Successful', rebate_response.message
   end
   
+  def test_realex_raw_response
+    response = @gateway.authorize(@amount, @visa, :order_id => generate_unique_id)
+    assert_not_nil response.raw_response
+  end
+  
 end
