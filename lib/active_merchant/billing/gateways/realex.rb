@@ -191,7 +191,7 @@ module ActiveMerchant
         timestamp = self.class.timestamp
         xml = Builder::XmlMarkup.new :indent => 2
         xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'auth' do
-          add_merchant_details(xml)
+          add_merchant_details(xml, options)
           xml.tag! 'orderid', sanitize_order_id(options[:order_id])
           add_ammount(xml, money, options)
           add_card(xml, credit_card)
@@ -207,7 +207,7 @@ module ActiveMerchant
         timestamp = self.class.timestamp
         xml = Builder::XmlMarkup.new :indent => 2
         xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'settle' do
-          add_merchant_details(xml)
+          add_merchant_details(xml, options)
           add_transaction_identifiers(xml, options)
           add_comments(xml, options)
           add_signed_digest(xml, timestamp, @options[:login], options[:order_id])
@@ -219,7 +219,7 @@ module ActiveMerchant
         timestamp = self.class.timestamp
         xml = Builder::XmlMarkup.new :indent => 2
         xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'rebate' do
-          add_merchant_details(xml)
+          add_merchant_details(xml, options)
           add_transaction_identifiers(xml, options)
           xml.tag! 'amount', amount(money), 'currency' => options[:currency] || currency(money)
           xml.tag! 'refundhash', @options[:refund_hash] if @options[:refund_hash]
@@ -234,7 +234,7 @@ module ActiveMerchant
         timestamp = self.class.timestamp
         xml = Builder::XmlMarkup.new :indent => 2
         xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'void' do
-          add_merchant_details(xml)
+          add_merchant_details(xml, options)
           add_transaction_identifiers(xml, options)
           add_comments(xml, options)
           add_signed_digest(xml, timestamp, @options[:login], options[:order_id])
@@ -272,9 +272,11 @@ module ActiveMerchant
         end
       end
       
-      def add_merchant_details(xml)
+      def add_merchant_details(xml, options)
         xml.tag! 'merchantid', @options[:login] 
-        xml.tag! 'account', options[:account] || @options[:account]
+        if options[:account] || @options[:account]
+          xml.tag! 'account', options[:account] || @options[:account]
+        end
       end
       
       def add_transaction_identifiers(xml, options)
