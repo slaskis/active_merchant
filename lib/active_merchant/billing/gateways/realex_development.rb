@@ -36,7 +36,7 @@ module ActiveMerchant #:nodoc:
       def authorize(money, creditcard, options = {})
         case creditcard.number
         when SUCCESSFUL_CARD
-          Response.new(true, SUCCESS_MESSAGE, {:authorized_amount => money.to_s}, :test => true, :authorization => AUTHORIZATION )
+          Response.new(true, SUCCESS_MESSAGE, {:authorized_amount => money.to_s, :pasref => '1234'}, :test => true, :authorization => AUTHORIZATION )
         when FAILING_CARD
           Response.new(false, FAILURE_MESSAGE, {:authorized_amount => money.to_s, :error => FAILURE_MESSAGE }, :test => true)
         else
@@ -46,9 +46,9 @@ module ActiveMerchant #:nodoc:
   
       def purchase(money, creditcard, options = {})
         case creditcard.number
-        when '1'
-          Response.new(true, SUCCESS_MESSAGE, {:paid_amount => money.to_s}, :test => true)
-        when '2'
+        when SUCCESSFUL_CARD
+          Response.new(true, SUCCESS_MESSAGE, {:paid_amount => money.to_s, :pasref => '1234'}, :test => true, :authorization => AUTHORIZATION)
+        when FAILING_CARD
           Response.new(false, FAILURE_MESSAGE, {:paid_amount => money.to_s, :error => FAILURE_MESSAGE },:test => true)
         else
           raise Error, ERROR_MESSAGE
