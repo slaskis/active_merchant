@@ -305,7 +305,7 @@ module ActiveMerchant
           xml.tag! 'issueno', credit_card.issue_number
           xml.tag! 'cvn' do
             xml.tag! 'number', credit_card.verification_value
-            xml.tag! 'presind', credit_card.verification_value? ? 1 : nil
+            xml.tag! 'presind', (options['presind'] || (credit_card.verification_value? ? 1 : nil))
           end
         end
       end
