@@ -3,21 +3,37 @@ require 'digest/sha1'
 
 module ActiveMerchant
   module Billing
-    # Realex us the leading CC gateway in Ireland
-    # see http://www.realexpayments.com
-    # Contributed by John Ward (john@ward.name)
-    # see http://thinedgeofthewedge.blogspot.com
-    # 
-    # Realex works using the following
-    # login - The unique id of the merchant
-    # password - The secret is used to digitally sign the request
-    # account - This is an optional third part of the authentication process
-    # and is used if the merchant wishes do distuinguish cc traffic from the different sources
-    # by using a different account. This must be created in advance
+    # For more information on the Realex Payment Gateway visit their site {realexpayments.com}[http://realexpayments.com]. 
+    # Realex is the leading gateway in Ireland
     #
-    # the Realex team decided to make the orderid unique per request, 
-    # so if validation fails you can not correct and resend using the 
-    # same order id
+    # === Contributors
+    #
+    # Original contribution by John Ward (john@ward.name) see {thinedgeofthewedge.blogspot.com}[http://thinedgeofthewedge.blogspot.com]
+    # Further development and adding the full base ActiveMerchant suite of methods by David Rice (me@davidjrice.co.uk) 
+    # - this development was enabled by {Ticketsolve}[http://ticketsolve.com]
+    #
+    # === Merchant ID and Password
+    #
+    # To be able to use this library you will need to obtain an account from Realex, you can find contact details on their website.
+    #
+    # === Caveats
+    #
+    # Realex requires that you specify the account to which your transactions are made.
+    #
+    #   gateway = ActiveMerchant::Billing::RealexGateway.new(:login => 'xxx', :password => 'xxx', :acction => 'xxx') 
+    #
+    # If you wish to accept multiple currencies, you need to create an account per currency. 
+    # This you would need to handle within your application logic.
+    # Again, contact Realex for more information.
+    #
+    # They also require accepting payment from a Diners card (Mastercard) go through a different account.
+    #
+    # Realex also requires that you send several (extra) identifiers with credit and void methods
+    #
+    # * order_id
+    # * pasref
+    # * authorization
+    #
     class RealexGateway < Gateway
       URL = 'https://epage.payandshop.com/epage-remote.cgi'
                   
@@ -61,6 +77,7 @@ module ActiveMerchant
       # ==== Options
       #
       # * <tt>:order_id</tt> -- The application generated order identifier. (REQUIRED)
+      #
       def authorize(money, creditcard, options = {})
         requires!(options, :order_id)
         
@@ -79,6 +96,7 @@ module ActiveMerchant
       # ==== Options
       #
       # * <tt>:order_id</tt> -- The application generated order identifier. (REQUIRED)
+      #
       def purchase(money, creditcard, options = {})
         requires!(options, :order_id)
         
@@ -97,14 +115,12 @@ module ActiveMerchant
       #
       # * <tt>:order_id</tt> -- The application generated order identifier. (REQUIRED)
       # * <tt>:pasref</tt> -- The realex payments reference of the original transaction. (REQUIRED)
-      # * <tt>:authcode</tt> -- The authcode of the original transaction. (REQUIRED)
+      #
       def capture(money, authorization, options = {})
-        options.merge!(:authcode => authorization)
-        requires!(options, :authcode)
         requires!(options, :pasref)
         requires!(options, :order_id)
         
-        request = build_capture_request(options) 
+        request = build_capture_request(authorization, options) 
         commit(request)
       end
       
@@ -116,20 +132,19 @@ module ActiveMerchant
       # ==== Parameters
       #
       # * <tt>money</tt> -- The amount to be credited to the customer. Either an Integer value in cents or a Money object.
-      # * <tt>identification</tt> -- The ID of the original transaction against which the credit is being issued.
+      # * <tt>authorization</tt> - The authorization returned from the previous authorize request.
       # * <tt>options</tt> -- A hash of parameters.
       #
       # ==== Options
       #
       # * <tt>:order_id</tt> -- The application generated order identifier. (REQUIRED)
       # * <tt>:pasref</tt> -- The realex payments reference of the original transaction. (REQUIRED)
-      # * <tt>:authcode</tt> -- The authcode of the original transaction. (REQUIRED)
-      def credit(money, identification, options = {})
-        options.merge!(:order_id => identification)
+      #
+      def credit(money, authorization, options = {})
+        requires!(options, :order_id)
         requires!(options, :pasref)
-        requires!(options, :authcode)
         
-        request = build_credit_request(money, options)
+        request = build_credit_request(money, authorization, options)
         commit(request)
       end
       
@@ -143,12 +158,10 @@ module ActiveMerchant
       #
       # * <tt>:order_id</tt> -- The application generated order identifier. (REQUIRED)
       # * <tt>:pasref</tt> -- The realex payments reference of the original transaction. (REQUIRED)
-      # * <tt>:authcode</tt> -- The authcode of the original transaction. (REQUIRED)
-      def void(identification, options = {})
-        options.merge!(:order_id => identification)
+      #
+      def void(authorization, options = {})
         requires!(options, :order_id)
         requires!(options, :pasref)
-        requires!(options, :authcode)
         
         request = build_void_request(options) 
         commit(request)
@@ -163,7 +176,7 @@ module ActiveMerchant
           :test => parsed[:message] =~ /\[ test system \]/,
           :authorization => parsed[:authcode],
           :cvv_result => parsed[:cvnresult],
-          :raw_response => response
+          :body => response
         )      
       end
 
@@ -203,24 +216,24 @@ module ActiveMerchant
         xml.target!
       end
       
-      def build_capture_request(options)
+      def build_capture_request(authorization, options)
         timestamp = self.class.timestamp
         xml = Builder::XmlMarkup.new :indent => 2
         xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'settle' do
           add_merchant_details(xml, options)
-          add_transaction_identifiers(xml, options)
+          add_transaction_identifiers(xml, authorization, options)
           add_comments(xml, options)
           add_signed_digest(xml, timestamp, @options[:login], options[:order_id])
         end
         xml.target!
       end
       
-      def build_credit_request(money, options)
+      def build_credit_request(money, authorization, options)
         timestamp = self.class.timestamp
         xml = Builder::XmlMarkup.new :indent => 2
         xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'rebate' do
           add_merchant_details(xml, options)
-          add_transaction_identifiers(xml, options)
+          add_transaction_identifiers(xml, authorization, options)
           xml.tag! 'amount', amount(money), 'currency' => options[:currency] || currency(money)
           xml.tag! 'refundhash', @options[:refund_hash] if @options[:refund_hash]
           xml.tag! 'autosettle', 'flag' => 1          
@@ -230,12 +243,12 @@ module ActiveMerchant
         xml.target!
       end
       
-      def build_void_request(options)
+      def build_void_request(authorization, options)
         timestamp = self.class.timestamp
         xml = Builder::XmlMarkup.new :indent => 2
         xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'void' do
           add_merchant_details(xml, options)
-          add_transaction_identifiers(xml, options)
+          add_transaction_identifiers(xml, authorization, options)
           add_comments(xml, options)
           add_signed_digest(xml, timestamp, @options[:login], options[:order_id])
         end
@@ -279,10 +292,10 @@ module ActiveMerchant
         end
       end
       
-      def add_transaction_identifiers(xml, options)
+      def add_transaction_identifiers(xml, authorization, options)
         xml.tag! 'orderid', sanitize_order_id(options[:order_id])
         xml.tag! 'pasref', options[:pasref]
-        xml.tag! 'authcode', options[:authcode]
+        xml.tag! 'authcode', authorization
       end
       
       def add_comments(xml, options)

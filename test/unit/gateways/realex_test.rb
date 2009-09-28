@@ -109,7 +109,6 @@ class RealexTest < Test::Unit::TestCase
   def test_capture_xml
     options = {
       :pasref => '1234',
-      :authcode => '1234',
       :order_id => '1'
     }
     
@@ -126,7 +125,7 @@ class RealexTest < Test::Unit::TestCase
 </request>
 SRC
     
-    assert_equal valid_capture_xml, @gateway.build_capture_request(options)
+    assert_equal valid_capture_xml, @gateway.build_capture_request('1234', options)
   end
   
   def test_purchase_xml
@@ -164,7 +163,6 @@ SRC
   def test_void_xml
     options = {
       :pasref => '1234',
-      :authcode => '1234',
       :order_id => '1'
     }
 
@@ -181,7 +179,7 @@ SRC
 </request>
 SRC
 
-    assert_equal valid_void_request_xml, @gateway.build_void_request(options)
+    assert_equal valid_void_request_xml, @gateway.build_void_request('1234', options)
   end
   
   def test_auth_xml
@@ -222,7 +220,6 @@ SRC
     
     options = {
       :pasref => '1234',
-      :authcode => '1234',
       :order_id => '1'
     }
 
@@ -241,7 +238,7 @@ SRC
 </request>
 SRC
 
-    assert_equal valid_credit_request_xml, @gateway.build_credit_request(@amount, options)
+    assert_equal valid_credit_request_xml, @gateway.build_credit_request(@amount, '1234', options)
 
   end
   
@@ -251,7 +248,6 @@ SRC
     
     options = {
       :pasref => '1234',
-      :authcode => '1234',
       :order_id => '1'
     }
 
@@ -271,7 +267,7 @@ SRC
 </request>
 SRC
 
-    assert_equal valid_credit_request_xml, gateway.build_credit_request(@amount, options)
+    assert_equal valid_credit_request_xml, gateway.build_credit_request(@amount, '1234', options)
 
   end
   
