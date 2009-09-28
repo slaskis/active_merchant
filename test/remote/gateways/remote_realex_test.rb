@@ -287,8 +287,8 @@ class RemoteRealexTest < Test::Unit::TestCase
       }
     )
     
-    void_response = @gateway.void(order_id,
-      :authcode => purchase_response.authorization,
+    void_response = @gateway.void(purchase_response.authorization,
+      :order_id => order_id,
       :pasref => purchase_response.params['pasref']
     )
     
@@ -314,8 +314,8 @@ class RemoteRealexTest < Test::Unit::TestCase
       }
     )
     
-    rebate_response = @gateway_with_refund_password.credit(@amount, order_id,
-      :authcode => purchase_response.authorization,
+    rebate_response = @gateway_with_refund_password.credit(@amount, purchase_response.authorization,
+      :order_id => order_id,
       :pasref => purchase_response.params['pasref']
     )
     
@@ -326,9 +326,9 @@ class RemoteRealexTest < Test::Unit::TestCase
     assert_equal 'Successful', rebate_response.message
   end
   
-  def test_realex_raw_response
+  def test_realex_response_body
     response = @gateway.authorize(@amount, @visa, :order_id => generate_unique_id)
-    assert_not_nil response.raw_response
+    assert_not_nil response.body
   end
   
 end

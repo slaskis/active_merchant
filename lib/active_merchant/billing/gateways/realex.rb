@@ -166,7 +166,7 @@ module ActiveMerchant
         requires!(options, :order_id)
         requires!(options, :pasref)
         
-        request = build_void_request(options) 
+        request = build_void_request(authorization, options) 
         commit(request)
       end
 
