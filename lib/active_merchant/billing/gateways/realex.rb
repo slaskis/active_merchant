@@ -28,12 +28,15 @@ module ActiveMerchant
     #
     # They also require accepting payment from a Diners card (Mastercard) go through a different account.
     #
-    # Realex also requires that you send several (extra) identifiers with credit and void methods
+    # Realex also requires that you send several (extra) required identifiers with credit and void methods
     #
     # * order_id
     # * pasref
     # * authorization
     #
+    # The pasref can be accessed from the response params. i.e.
+    #   response.params['pasref']
+    # 
     class RealexGateway < Gateway
       URL = 'https://epage.payandshop.com/epage-remote.cgi'
                   
