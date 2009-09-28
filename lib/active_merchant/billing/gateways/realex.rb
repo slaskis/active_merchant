@@ -8,13 +8,16 @@ module ActiveMerchant
     #
     # === Contributors
     #
-    # Original contribution by John Ward (john@ward.name) see {thinedgeofthewedge.blogspot.com}[http://thinedgeofthewedge.blogspot.com]
-    # Further development and adding the full base ActiveMerchant suite of methods by David Rice (me@davidjrice.co.uk) 
-    # - this development was enabled by {Ticketsolve}[http://ticketsolve.com]
+    # Original contribution by John Ward (john@ward.name) see 
+    #   {thinedgeofthewedge.blogspot.com}[http://thinedgeofthewedge.blogspot.com]
+    #
+    # Further development and adding the full ActiveMerchant suite of methods by David Rice (me@davidjrice.co.uk) 
+    # - this development was kindly enabled by {Ticketsolve}[http://ticketsolve.com]
     #
     # === Merchant ID and Password
     #
-    # To be able to use this library you will need to obtain an account from Realex, you can find contact details on their website.
+    # To be able to use this library you will need to obtain an account from Realex, you can find contact them
+    # via their website.
     #
     # === Caveats
     #
@@ -36,7 +39,13 @@ module ActiveMerchant
     #
     # The pasref can be accessed from the response params. i.e.
     #   response.params['pasref']
+    #
+    # === Testing
     # 
+    # Realex provide test card numbers on a per-account basis, you will need to request these.
+    # Then if you copy the fixtures file that comes with this library to ~/.active_merchant/fixtures.yml
+    # you can add in the required card number (and account) fixtures.
+    #
     class RealexGateway < Gateway
       URL = 'https://epage.payandshop.com/epage-remote.cgi'
                   
