@@ -180,7 +180,11 @@ module ActiveMerchant
           :test => parsed[:message] =~ /\[ test system \]/,
           :authorization => parsed[:authcode],
           :cvv_result => parsed[:cvnresult],
-          :body => response
+          :body => response,
+          :avs_result => { 
+            :street_match => parsed['AVSADDRESSRESPONSE'],
+            :postal_match => parsed['AVSPOSTCODERESPONSE']
+          }
         )      
       end
 
