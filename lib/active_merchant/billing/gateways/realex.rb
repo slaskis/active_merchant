@@ -190,8 +190,11 @@ module ActiveMerchant
 
       def parse(xml)
         response = {}
+                
+        xml = REXML::Document.new(xml)
         
-        xml = REXML::Document.new(xml)          
+        return response unless xml.root
+
         xml.elements.each('//response/*') do |node|
 
           if (node.elements.size == 0)
@@ -203,7 +206,7 @@ module ActiveMerchant
             end              
           end
 
-        end unless xml.root.nil?
+        end
         
         response
       end
@@ -278,14 +281,14 @@ module ActiveMerchant
           
           if billing_address
             xml.tag! 'address', 'type' => 'billing' do
-              xml.tag! 'code', billing_address[:zip]
+              xml.tag! 'code', avs_input_code( billing_address )
               xml.tag! 'country', billing_address[:country]
             end
           end
           
           if shipping_address
             xml.tag! 'address', 'type' => 'shipping' do
-              xml.tag! 'code', shipping_address[:zip]
+              xml.tag! 'code', avs_input_code( shipping_address )
               xml.tag! 'country', shipping_address[:country]
             end
           end
@@ -330,7 +333,15 @@ module ActiveMerchant
           end
         end
       end
-      
+
+      def avs_input_code(address)
+        address.values_at(:address1, :zip).map{ |v| extract_digits(v) }.join('|')
+      end
+
+      def extract_digits(string)
+        string.gsub(/[\D]/,'')
+      end
+
       def stringify_values(values)
         string = ""
         (0..5).each do |i|

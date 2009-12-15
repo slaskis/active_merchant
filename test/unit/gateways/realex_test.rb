@@ -5,7 +5,7 @@ class RealexTest < Test::Unit::TestCase
   
   class ActiveMerchant::Billing::RealexGateway
     # For the purposes of testing, lets redefine some protected methods as public.
-    public :build_purchase_or_authorization_request, :build_credit_request, :build_void_request, :build_capture_request, :stringify_values
+    public :build_purchase_or_authorization_request, :build_credit_request, :build_void_request, :build_capture_request, :stringify_values, :avs_input_code
   end
   
   def setup
@@ -280,6 +280,11 @@ SRC
     
     assert_equal "timestamp.merchantid.orderid...", 
       @gateway.stringify_values(["timestamp","merchantid", "orderid"])
+  end
+  
+  def test_should_extract_avs_input
+    address = {:address1 => "123 Fake Street", :zip => 'BT1 0HX'}
+    assert_equal @gateway.avs_input_code(address), "123|10"
   end
   
   private
