@@ -175,17 +175,17 @@ module ActiveMerchant
       def commit(request)
         response = ssl_post(URL, request)
         parsed = parse(response)
-        
+
         Response.new(parsed[:result] == "00", message_from(parsed), parsed,
           :test => parsed[:message] =~ /\[ test system \]/,
           :authorization => parsed[:authcode],
           :cvv_result => parsed[:cvnresult],
           :body => response,
           :avs_result => { 
-            :street_match => parsed['AVSADDRESSRESPONSE'],
-            :postal_match => parsed['AVSPOSTCODERESPONSE']
+            :street_match => parsed[:avspostcoderesponse],
+            :postal_match => parsed[:avspostcoderesponse]
           }
-        )      
+        ) 
       end
 
       def parse(xml)
@@ -288,7 +288,7 @@ module ActiveMerchant
           
           if shipping_address
             xml.tag! 'address', 'type' => 'shipping' do
-              xml.tag! 'code', avs_input_code( shipping_address )
+              xml.tag! 'code', shipping_address[:zip]
               xml.tag! 'country', shipping_address[:country]
             end
           end
@@ -335,7 +335,7 @@ module ActiveMerchant
       end
 
       def avs_input_code(address)
-        address.values_at(:address1, :zip).map{ |v| extract_digits(v) }.join('|')
+        address.values_at(:zip, :address1).map{ |v| extract_digits(v) }.join('|')
       end
 
       def extract_digits(string)
