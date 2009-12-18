@@ -382,4 +382,165 @@ SRC
 </response>"
     RESPONSE
   end
+
+  def successful_verify_request
+    <<-REQUEST
+<request timestamp="20030625172305" type="3ds-verifyenrolled">
+  <merchantid>merchantid</merchantid>
+  <account />
+  <orderid>orderid</orderid>
+  <amount currency="EUR">2499</amount>
+  <card>
+  <number>4012001037141112</number>
+  <expdate>0404</expdate>
+  <type>visa</type>
+  <chname>Joe Pescquali</chname>
+  </card>
+  <sha1hash>c914a520f88743e40d0620e1b5328c4eebb33725</sha1hash>
+  <comments>
+    <comment id="1" />
+    <comment id="2" />
+  </comments>
+</request>
+REQUEST
+  end
+  
+  def successful_verify_enrollment_response
+    <<-RESPONSE
+<response timestamp="20030625171810">
+  <merchantid>merchantid</merchantid>
+  <account>internet</account>
+  <orderid>orderid</orderid>
+  <authcode></authcode>
+  <result>00</result>
+  <message>Enrolled</message>
+  <pasref></pasref>
+  <timetaken>3</timetaken>
+  <authtimetaken>0</authtimetaken>
+  <pareq>eJxVUttygkAM/ZUdnitZFlBw4na02tE6bR0vD+0bLlHpFFDASv++u6i1
+  zVNycju54H2dfrIvKsokz3qWY3OLUabyOMm2PWu1fGwF1r3E5a4gGi5IH
+  QuS+ExlGW2JJXHPCjcuVyLYbIRQnrf2o3VMEY+57q05oIsibP+nA4SL02k
+  7mELhKupqxVqF2WVxEgdBpMX6dwE4YJhSsVkKB3RH9ypGFyvNXpkrLW
+  982HcancQzn7MopSkO2RnqmxJZYXQgKjyY1YV39Lt6O5XA4/Fp9xV1b4L
+  cDqdbDcum8xKJ9oqTxFMAMKN5OxotFIXrJNY1otpMH0qYQwP43w08Pn0
+  /W1Ql6+nj+cegonAOKpICs5d3hY+czpdJ+g6HKHBUoNEyk8OwzZaDXXE
+  58R3JtG/as7DBH+IqhZFvpS3zLsBHqeq4VU7/OMTA7Cr45wo/0wNptWlV
+  4Xb8Thftv3A30xs+7GYaokej3c415TxhgIJhUu54TLF2jt33f8ADVyvnA=</pareq>
+  <url>http://www.acs.com</url>
+  <enrolled>Y</enrolled>
+  <xid>7ba3b1e6e6b542489b73243aac050777</xid>
+  <sha1hash>9eda1f99191d4e994627ddf38550b9f47981f614</sha1hash>
+</response>
+RESPONSE
+  end
+
+  def unsuccessful_verify_enrollment_response
+    <<-RESPONSE
+<response timestamp="20030625171810">
+  <merchantid>merchantid</merchantid>
+  <account>internet</account>
+  <orderid>orderid</orderid>
+  <authcode></authcode>
+  <result>110</result>
+  <message>Not Enrolled</message>
+  <pasref></pasref>
+  <timetaken>3</timetaken>
+  <authtimetaken>0</authtimetaken>
+  <pareq>eJxVUttygkAM/ZUdnitZFlBw4na02tE6bR0vD+0bLlHpFFDASv++u6i1
+  zVNycju54H2dfrIvKsokz3qWY3OLUabyOMm2PWu1fGwF1r3E5a4gGi5IH
+  QuS+ExlGW2JJXHPCjcuVyLYbIRQnrf2o3VMEY+57q05oIsibP+nA4SL02k
+  7mELhKupqxVqF2WVxEgdBpMX6dwE4YJhSsVkKB3RH9ypGFyvNXpkrLW
+  982HcancQzn7MopSkO2RnqmxJZYXQgKjyY1YV39Lt6O5XA4/Fp9xV1b4L
+  cDqdbDcum8xKJ9oqTxFMAMKN5OxotFIXrJNY1otpMH0qYQwP43w08Pn0
+  /W1Ql6+nj+cegonAOKpICs5d3hY+czpdJ+g6HKHBUoNEyk8OwzZaDXXE
+  58R3JtG/as7DBH+IqhZFvpS3zLsBHqeq4VU7/OMTA7Cr45wo/0wNptWlV
+  4Xb8Thftv3A30xs+7GYaokej3c415TxhgIJhUu54TLF2jt33f8ADVyvnA=</pareq>
+  <url></url>
+  <enrolled>N</enrolled>
+  <xid>e9dafe706f7142469c45d4877aaf5984</xid>
+  <sha1hash>9eda1f99191d4e994627ddf38550b9f47981f614</sha1hash>
+</response>
+RESPONSE
+  end
+
+  def successful_verify_signature_request
+    <<-REQUEST
+<request timestamp="20030625172325" type="3ds-verifysig">
+  <merchantid>merchantid</merchantid>
+  <account />
+  <orderid>orderid</orderid>
+  <amount currency="EUR">2499</amount>
+  <card>
+  <number>4012001037141112</number>
+  <expdate>0404</expdate>
+  <type>visa</type>
+  <chname>Joe Pescqualli</chname>
+  </card>
+  <pares>eJztWFmT4jgS/..... a/A2OMEv4=</pares>
+  <sha1hash>e0817f5ffeca1241c23a52b0eafa5c578ef68356</sha1hash>
+  <comments>
+  <comment id="1" />
+  <comment id="2" />
+  </comments>
+</request>
+REQUEST
+  end
+  
+  def successful_verify_signature_response
+    <<-RESPONSE
+<response timestamp="20030625171823">
+  <merchantid>merchantid</merchantid>
+  <account />
+  <orderid>orderid</orderid>
+  <result>00</result>
+  <message>Authentication Successful</message>
+  <threedsecure>
+  <status>N</status>
+  <eci />
+  <xid />
+  <cavv />
+  <algorithm />
+  </threedsecure>
+  <sha1hash>e5a7745da5dc32d234c3f52860132c482107e9ac</sha1hash>
+</response>
+RESPONSE
+  end
+
+
+# TODO
+# Ensure this response error is caught and payments made unobtrusively...
+#
+# <response timestamp="20060322231944">
+# <result> 508</ result>
+# < message> Transaction MPI data does not match the data in the MPI database</ message>
+# </response>
+
+  def successful_authorisation_request_with_3dsecure
+    <<-REQUEST
+<request timestamp="20030625172325" type="auth">
+  <merchantid>merchantid</merchantid>
+  <account />
+  <orderid>orderid</orderid>
+  <amount currency="EUR">2499</amount>
+  <card>
+  <number>4012001037141112</number>
+  <expdate>0404</expdate>
+  <type>visa</type>
+  <chname>Joe Pescqualli</chname>
+  </card>
+  <autosettle flag="1" />
+  <mpi>
+  <cavv>AAACAWQWaRKIFwQlVBZpAAAAAAA=</cavv>
+  <xid>l2ncCuvKNtCtRY3OoC/ztHS8ZvI=</xid>
+  <eci>5</eci>
+  </mpi>
+  <sha1hash>e0817f5ffeca1241c23a52b0eafa5c578ef68356</sha1hash>
+  <comments>
+  <comment id="1" />
+  <comment id="2" />
+  </comments>
+  <autosettle flag="1" />
+</request>
+REQUEST
+  end
 end
