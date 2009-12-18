@@ -185,7 +185,7 @@ module ActiveMerchant
             :street_match => parsed[:avspostcoderesponse],
             :postal_match => parsed[:avspostcoderesponse]
           }
-        ) 
+        )
       end
 
       def parse(xml)
