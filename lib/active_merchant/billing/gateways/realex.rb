@@ -109,8 +109,8 @@ module ActiveMerchant
         requires!(options, :order_id)
 
         # if options[:3d_secure]
-        three_d_secure_request = build_3d_secure_verify_enrolled_request(money, creditcard, options)
-        three_d_secure_response = commit_3dsecure(three_d_secure_request)
+        # three_d_secure_request = build_3d_secure_verify_enrolled_request(money, creditcard, options)
+        # three_d_secure_response = commit_3dsecure(three_d_secure_request)
         #debugger
                 
         request = build_purchase_or_authorization_request(:purchase, money, creditcard, options)
