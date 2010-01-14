@@ -405,7 +405,7 @@ module ActiveMerchant
         else field
         end        
       end
-      
+
       def message_from(response)
         message = nil
         case response[:result]                
@@ -420,6 +420,8 @@ module ActiveMerchant
         when /^3[0-9][0-9]/
           message = REALEX_ERROR
         when /^5[0-9][0-9]/
+          message = response[:message]
+        when "600", "601", "603"
           message = ERROR
         when "666"
           message = CLIENT_DEACTIVATED
