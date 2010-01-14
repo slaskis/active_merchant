@@ -62,7 +62,7 @@ module ActiveMerchant #:nodoc:
         when '2'
           Response.new(false, FAILURE_MESSAGE, {:paid_amount => money.to_s, :error => FAILURE_MESSAGE }, :test => true)
         else
-          Response.new(true, SUCCESS_MESSAGE, {:paid_amount => money.to_s}, :test => true)
+          Response.new(true, SUCCESS_MESSAGE, {:paid_amount => money.to_s, :orderid => '1234'}, :test => true)
         end
       end
  
