@@ -284,7 +284,7 @@ SRC
   
   def test_should_extract_avs_input
     address = {:address1 => "123 Fake Street", :zip => 'BT1 0HX'}
-    assert_equal @gateway.avs_input_code(address), "123|10"
+    assert_equal "10|123", @gateway.avs_input_code(address)
   end
   
   private
