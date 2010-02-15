@@ -65,8 +65,7 @@ class RemoteRealexTest < Test::Unit::TestCase
     assert_failure response
     
     assert_equal '504', response.params['result']
-    assert_equal "There is no such merchant id. Please contact realex payments if you continue to experience this problem.", response.params['message']
-    assert_equal RealexGateway::ERROR, response.message
+    assert_equal "There is no such merchant id. Please contact realex payments if you continue to experience this problem.", response.message
   end
   
   def test_realex_purchase_with_invalid_account
@@ -80,8 +79,7 @@ class RemoteRealexTest < Test::Unit::TestCase
     assert_failure response
       
     assert_equal '506', response.params['result']
-    assert_equal "There is no such merchant account. Please contact realex payments if you continue to experience this problem.", response.params['message']
-    assert_equal RealexGateway::ERROR, response.message
+    assert_equal "There is no such merchant account. Please contact realex payments if you continue to experience this problem.", response.message
   end
   
   def test_realex_purchase_declined
@@ -163,8 +161,7 @@ class RemoteRealexTest < Test::Unit::TestCase
     
     # Looking at the API this should actually be "509 - Invalid credit card length" but hey..
     assert_equal '508', response.params['result']
-    assert_equal "Invalid data in CC number field.", response.params['message']
-    assert_equal RealexGateway::ERROR, response.message
+    assert_equal "Invalid data in CC number field.", response.message
   end
 
   def test_realex_expiry_month_error
@@ -178,7 +175,7 @@ class RemoteRealexTest < Test::Unit::TestCase
     assert_failure response
     
     assert_equal '509', response.params['result']
-    assert_equal RealexGateway::ERROR, response.message
+    assert_equal "Expiry date invalid", response.message
   end
 
   def test_realex_expiry_year_error
@@ -192,7 +189,7 @@ class RemoteRealexTest < Test::Unit::TestCase
     assert_failure response
     
     assert_equal '509', response.params['result']
-    assert_equal RealexGateway::ERROR, response.message
+    assert_equal "Expiry date invalid", response.message
   end
   
   def test_invalid_credit_card_name
@@ -207,7 +204,7 @@ class RemoteRealexTest < Test::Unit::TestCase
     assert_failure response
 
     assert_equal '502', response.params['result']
-    assert_equal RealexGateway::ERROR, response.message
+    assert_equal "Mandatory field not present - cannot continue. Please check the Developer Documentation for mandatory fields", response.message
   end
 
   def test_cvn
