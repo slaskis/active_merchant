@@ -296,7 +296,7 @@ module ActiveMerchant
       def add_address_and_customer_info(xml, options)
         billing_address = options[:billing_address] || options[:address]
         shipping_address = options[:shipping_address]
-        
+
         return unless billing_address || shipping_address || options[:customer] || options[:invoice] || options[:ip]
         
         xml.tag! 'tssinfo' do

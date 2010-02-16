@@ -39,6 +39,15 @@ class RealexTest < Test::Unit::TestCase
       :order_id => '1'
     }
     
+    @address = {
+      :name => 'Longbob Longsen',
+      :address1 => '123 Fake Street',
+      :city => 'Belfast',
+      :state => 'Antrim',
+      :country => 'Northern Ireland',
+      :zip => 'BT2 8XX'
+    }
+    
     @amount = 100
   end
   
@@ -286,7 +295,25 @@ SRC
     address = {:address1 => "123 Fake Street", :zip => 'BT1 0HX'}
     assert_equal "10|123", @gateway.avs_input_code(address)
   end
-  
+
+  def test_auth_with_address
+    @gateway.expects(:ssl_post).returns(successful_purchase_response)
+    
+    options = {
+      :order_id => '1',
+      :billing_address => @address,
+      :shipping_address => @address
+    }
+
+    ActiveMerchant::Billing::RealexGateway.expects(:timestamp).returns('20090824160201')
+    
+    response = @gateway.authorize(@amount, @credit_card, options)
+    assert_instance_of Response, response
+    assert_success response
+    assert response.test?
+    
+  end
+
   private
   
   def successful_purchase_response
