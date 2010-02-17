@@ -40,6 +40,7 @@ module ActiveMerchant
     #
     class RealexGateway < Gateway
       URL = 'https://epage.payandshop.com/epage-remote.cgi'
+      # https://epage.payandshop.com/epage-remote-plugins.cgi
                   
       CARD_MAPPING = {
         'master'            => 'MC',
@@ -170,6 +171,177 @@ module ActiveMerchant
         request = build_void_request(authorization, options) 
         commit(request)
       end
+
+      # http://resource.realexpayments.com/docs/recurring_payments_guide.pdf
+      
+      # * <tt>recurring(money, creditcard, options = {})</tt>
+      # <request type="receipt-in" timestamp="20030520151742">
+      # <merchantid>yourmerchantid</merchantid>
+      # <account>internet</account>
+      # <orderid>transaction01</orderid>
+      # <amount currency="EUR">9999</amount>
+      # <payerref>bloggsj01</payerref>
+      # <paymentmethod>mandate01</paymentmethod>
+      # <autosettle flag="1" />
+      # <md5hash />
+      # <sha1hash>c81377ac77b6c0a8ca4152e00cc173d01c3d98eb</sha1hash>
+      # <comments>
+      # <comment id="1" />
+      # <comment id="2" />
+      # </comments>
+      # <tssinfo>
+      # <address type="billing">
+      # <code />
+      # <country />
+      # </address>
+      # <address type="shipping">
+      # <code />
+      # <country />
+      # </address>
+      # <custnum></custnum>
+      # <varref></varref>
+      # <prodid></prodid>
+      # </tssinfo>
+      # </request>
+      
+      # refund
+      
+      # <request type="payment-out" timestamp="20090320151742">
+      # <merchantid>yourclientid</merchantid>
+      # <account>internet</account>
+      # <orderid>transaction01</orderid>
+      # <amount currency="EUR">9999</amount>
+      # <payerref>bloggsj01</payerref>
+      # <paymentmethod>mandate01</paymentmethod>
+      # <md5hash />
+      # <sha1hash>c81377ac77b6c0a8ca4152e00cc173d01c3d98eb</sha1hash>
+      # <refundhash>489167b182152dd81afc199e056890f7383674e5</refundhash>
+      # <comments>
+      # <comment id="1" />
+      # <comment id="2" />
+      # </comments>
+      # <tssinfo>
+      # <address type="billing">
+      # <code>zip/postal code</code>
+      # <country>country</country>
+      # </address>
+      # <address type="shipping">
+      # <code>zip/postal code</code>
+      # <country>country</country>
+      # </address>
+      # <custnum></custnum>
+      # <varref></varref>
+      # <prodid></prodid>
+      # </tssinfo>
+      # </request>
+      
+      
+      
+      
+      #
+      # Some gateways also support features for storing credit cards:
+      #
+      # * <tt>store(creditcard, options = {})</tt>
+      
+      # <request type="card-new" timestamp="20030516181127">
+      # <merchantid>yourmerchantid</merchantid>
+      # <orderid>uniqueid</orderid>
+      # <card>
+      # <ref>visa01</ref>
+      # <payerref>smithj01</payerref>
+      # <number>498843******9991</number>
+      # <expdate>0104</expdate>
+      # <chname>John Smith</chname>
+      # <type>visa</type>
+      # <issueno />
+      # </card>
+      # <sha1hash>4d708b24e3494bf80916ba3c8afd8347060fdd65</sha1hash>
+      # </request>
+      
+      
+      # * <tt>unstore(identification, options = {})</tt>
+      
+      # new payee
+      # •	See Section 5 for details on how to create the hash.
+      # timestamp.merchantid.orderid.amount.currency.payerref
+      #
+      # <request type="payer-new" timestamp="20030516175919">
+      # <merchantid>yourmerchantid</merchantid>
+      # <orderid>uniqueid</orderid>
+      # <payer type="Business" ref="smithj01">
+      # <title>Mr</title>
+      # <firstname>John</firstname>
+      # <surname>Smith</surname>
+      # <company>Acme Inc</company>
+      # <address>
+      # <line1>123 Fake St.</line1>
+      # <line2 />
+      # <line3 />
+      # <city>Hytown</city>
+      # <county>Dunham</county>
+      # <postcode>3</postcode>
+      # <country code="IE"> Ireland </country>
+      # </address>
+      # <phonenumbers>
+      # <home />
+      # <work>+35317433923</work>
+      # <fax>+35317893248</fax>
+      # <mobile>+353873748392</mobile>
+      # </phonenumbers>
+      # <email>jsmith@acme.com</email>
+      # <passphrase />
+      # <comments>
+      # <comment id="1" />
+      # <comment id="2" />
+      # </comments>
+      # </payer>
+      # <sha1hash>7daf026b193eb18344f5ab6822cd05959718c567</sha1hash>
+      # <comments>
+      # <comment id="1" />
+      # <comment id="2" />
+      # </comments>
+      # </request>
+      
+      # edit payee
+      # •	See Section 5 for details on how to create the hash.
+      # timestamp.merchantid.orderid.amount.currency.payerref
+      #
+      # <request type="payer-edit" timestamp="20030516175919">
+      # <merchantid>yourmerchantid</merchantid>
+      # <orderid>uniqueid</orderid>
+      # <payer type="Business" ref="smithj01">
+      # <title>Mr</title>
+      # <firstname>John</firstname>
+      # <surname>Smith</surname>
+      # <company>Acme Inc</company>
+      # <address>
+      # <line1>123 Fake St.</line1>
+      # <line2 />
+      # <line3 />
+      # <city>Hytown</city>
+      # <county>Dunham</county>
+      # <postcode>3</postcode>
+      # <country code="IE"> Ireland </country>
+      # </address>
+      # <phonenumbers>
+      # <home />
+      # <work>+35317433923</work>
+      # <fax>+35317893248</fax>
+      # <mobile>+353873748392</mobile>
+      # </phonenumbers>
+      # <email>jsmith@acme.com</email>
+      # <passphrase />
+      # <comments>
+      # <comment id="1" />
+      # <comment id="2" />
+      # </comments>
+      # </payer>
+      # <sha1hash>7daf026b193eb18344f5ab6822cd05959718c567</sha1hash>
+      # <comments>
+      # <comment id="1" />
+      # <comment id="2" />
+      # </comments>
+      # </request>
 
       private
       def commit(request)

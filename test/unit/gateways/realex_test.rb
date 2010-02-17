@@ -409,4 +409,112 @@ SRC
 </response>"
     RESPONSE
   end
+
+  def successful_payer_new_response
+    <<-RESPONSE
+    <response timestamp="20080611122312">
+    <merchantid>yourmerchantid</merchantid>
+    <account>internet</account>
+    <orderid>transaction01</orderid>
+    <result>00</result>
+    <message>Successful</message>
+    <pasref>5e6b67d303404710a98a4f18abdcd402</pasref>
+    <authcode></authcode>
+    <batchid></batchid>
+    <timetaken>0</timetaken>
+    <processingtimetaken></processingtimetaken>
+    <md5hash>ff3be479aca946522a9d72d792855018</md5hash>
+    <sha1hash>2858c85a5e380e9dc9398329bbd1f086527fc2a7</sha1hash>
+    </response>
+  RESPONSE
+  end
+
+  def successful_payer_edit_response
+    <<-RESPONSE
+    <response timestamp="20080619114736">
+    <merchantid>yourmerchantid</merchantid>
+    <account>internet</account>
+    <orderid>transaction01</orderid>
+    <result>00</result>
+    <message>Successful</message>
+    <pasref>889510cbf2e74b27b745b2b9b908fabf</pasref>
+    <authcode></authcode>
+    <batchid></batchid>
+    <timetaken>0</timetaken>
+    <processingtimetaken></processingtimetaken>
+    <md5hash>0bcbd8187c2e2ff48668bca26c706a39</md5hash>
+    <sha1hash>7cd0d46c65d6985b7871a7e682451be5ac1b5a2d</sha1hash>
+    </response>
+  RESPONSE
+  end
+
+  def successful_card_store_response
+    <<-RESPONSE
+    <response timestamp="20080619120024">
+    <merchantid>yourmerchantid</merchantid>
+    <account>internet</account>
+    <orderid>transaction01</orderid>
+    <result>00</result>
+    <message>Successful</message>
+    <pasref>6326ce64fbe340d699433dfc01785c69</pasref>
+    <authcode></authcode>
+    <batchid></batchid>
+    <timetaken>0</timetaken>
+    <processingtimetaken></processingtimetaken>
+    <md5hash>e41b9e80d0421930131572d66c830407</md5hash>
+    <sha1hash>281e5be5a58c7e26b2a6aa31018177960a9c49ab</sha1hash>
+    </response>
+  RESPONSE
+  end
+
+  def unsuccessful_card_store_response
+    <<-RESPONSE
+    <response timestamp="20080619120121">
+    <merchantid></merchantid>
+    <account></account>
+    <orderid></orderid>
+    <result>501</result>
+    <message>This Card Ref [cardref01] has already been used [Perhaps you've already set up this
+    card for this Payer?]</message>
+    <pasref></pasref>
+    <authcode></authcode>
+    <batchid></batchid>
+    <timetaken>1</timetaken>
+    <processingtimetaken></processingtimetaken>
+    <md5hash>ce30d3ea0e4c9b3d152b61bc5dc93fba</md5hash>
+    <sha1hash>8f00805dc22a8832ad43ba2d31ba1ee868ed51f9</sha1hash>
+    </response>
+    RESPONSE
+  end
+  
+  def successful_reccurring_response
+    <<-RESPONSE
+    <response timestamp="20080611121850">
+    <merchantid>yourmerchantid</merchantid>
+    <account>internet</account>
+    <orderid>transaction01</orderid>
+    <result>00</result>
+    <message>Successful</message>
+    <pasref>6210a82bba414793ba391254dffbbf77</pasref>
+    <authcode></authcode>
+    <batchid>161</batchid>
+    <timetaken>1</timetaken>
+    <processingtimetaken></processingtimetaken>
+    <md5hash>22049e6b2c68a5a3942a615c46a1bd72</md5hash>
+    <sha1hash>ddd37a93aa377e8c85b42ff4c3a1f88db33ea977</sha1hash>
+    </response>
+    RESPONSE
+  end
+  
+  def unsucessful_recurring_response
+    <<-RESPONSE
+    <response timestamp="20080611122328">
+    <merchantid>yourmerchantid</merchantid>
+    <account>internet</account>
+    <result>520</result>
+    <message>There is no such Payment Method [cardref] configured for that Payer
+    [payerref]</message>
+    </response>
+    RESPONSE
+  end
 end
