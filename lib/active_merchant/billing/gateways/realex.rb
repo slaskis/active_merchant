@@ -40,7 +40,7 @@ module ActiveMerchant
     #
     class RealexGateway < Gateway
       URL = 'https://epage.payandshop.com/epage-remote.cgi'
-      # https://epage.payandshop.com/epage-remote-plugins.cgi
+      RECURRING_PAYMENTS_URL = "https://epage.payandshop.com/epage-remote-plugins.cgi"
                   
       CARD_MAPPING = {
         'master'            => 'MC',
@@ -174,7 +174,19 @@ module ActiveMerchant
 
       # * <tt>recurring(money, creditcard, options = {})</tt>
       # * <tt>store(creditcard, options = {})</tt>
+      # http://resource.realexpayments.com/docs/recurring_payments_guide.pdf
+      def store_card(credit_card, options = {})
+        requires!(options, :order_id)
+        request = build_new_card_request(credit_card, options)
+        commit_recurring(request)
+      end 
 
+      def store_user(options = {})
+        requires!(options, :order_id)
+        request = build_new_payee_request(options)
+        commit_recurring(request)
+      end
+ 
       def store(credit_card, options = {})
         requires!(options, :order_id)
         # requires a user id
@@ -214,7 +226,7 @@ module ActiveMerchant
         xml.target!
       end
 
-      def build_new_payee_request(options = {})
+      def build_new_payee_request(options)
         timestamp = self.class.timestamp
         xml = Builder::XmlMarkup.new :indent => 2
         xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'payer-new' do
@@ -263,6 +275,22 @@ module ActiveMerchant
         )
       end
 
+      def commit_recurring(request)
+        response = ssl_post(RECURRING_PAYMENTS_URL, request)
+        parsed = parse(response)
+        STDERR.puts request.inspect
+        Response.new(parsed[:result] == "00", message_from(parsed), parsed,
+          :test => parsed[:message] =~ /\[ test system \]/,
+          :authorization => parsed[:authcode],
+          :cvv_result => parsed[:cvnresult],
+          :body => response,
+          :avs_result => { 
+            :street_match => parsed[:avspostcoderesponse],
+            :postal_match => parsed[:avspostcoderesponse]
+          }
+        )
+      end
+      
       def parse(xml)
         response = {}
                 
@@ -429,6 +457,7 @@ module ActiveMerchant
       
       def add_signed_digest(xml, *values)
         string = stringify_values(values)
+        STDERR.puts string
         xml.tag! 'sha1hash', sha1from(string)
       end
       

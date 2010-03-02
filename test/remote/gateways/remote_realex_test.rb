@@ -327,5 +327,40 @@ class RemoteRealexTest < Test::Unit::TestCase
     response = @gateway.authorize(@amount, @visa, :order_id => generate_unique_id)
     assert_not_nil response.body
   end
+
+  def test_realex_store_user
+    options = {
+      :order_id => generate_unique_id,
+      :user => {
+        :id => 1,
+        :first_name => 'John',
+        :last_name => 'Smith'
+      }
+    }
+    STDERR.puts @gateway.inspect
+    response = @gateway.store_user(options)
+      
+    assert_not_nil response
+    assert_success response
+    assert response.test?
+    assert response.authorization.length > 0
+    assert_equal 'Successful', response.message   
+  end
+  
+  #def test_realex_store_card
+  #  options = {
+  #    :order_id => generate_unique_id,
+  #    :user => {
+  #      :id => 1
+  #    }
+  #  }
+  #  response = @gateway.store_card(@visa, options)
+  #    
+  #  assert_not_nil response
+  #  assert_success response
+  #  assert response.test?
+  #  assert response.authorization.length > 0
+  #  assert_equal 'Successful', response.message
+  #end
   
 end
