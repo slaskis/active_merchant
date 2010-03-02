@@ -384,7 +384,34 @@ SRC
   end
 
   def test_receipt_in_xml
-    
+    gateway = RealexGateway.new(:login => @login, :password => @password, :account => @account)
+    options = {
+      :order_id => '1',
+      :payment_method => 'visa01',
+      :user => {
+        :id => 1,
+        :first_name => 'John',
+        :last_name => 'Smith'
+      }
+    }
+
+    ActiveMerchant::Billing::RealexGateway.expects(:timestamp).returns('20090824160201')
+
+    valid_receipt_in_request_xml = <<-SRC
+<request timestamp="20090824160201" type="receipt-in">
+  <merchantid>your_merchant_id</merchantid>
+  <account>your_account</account>
+  <orderid>1</orderid>
+  <amount currency=\"EUR\">100</amount>
+  <payerref>1</payerref>
+  <paymentmethod>visa01</paymentmethod>
+  <autosettle flag="0"/>
+  <sha1hash>3499d7bc8dbacdcfba2286bd74916d026bae630f</sha1hash>
+</request>
+SRC
+
+    assert_equal valid_receipt_in_request_xml, @gateway.build_receipt_in_request(@amount, @credit_card, options)
+
   end
 
   private
