@@ -172,6 +172,24 @@ module ActiveMerchant
         commit(request)
       end
 
+      # * <tt>recurring(money, creditcard, options = {})</tt>
+      # * <tt>store(creditcard, options = {})</tt>
+
+      def store(credit_card, options = {})
+        requires!(options, :order_id)
+        # requires a user id
+        # requires a card id...
+        
+        payee_request = build_new_payee_request(options) 
+        payee_response = commit(request)
+        if payee_response.success?
+          card_request = build_new_card_request(credit_card, options)
+          return commit(card_request)
+        else
+          return payee_response
+        end
+      end
+      
       def build_new_card_request(credit_card, options = {})
         timestamp = self.class.timestamp
         xml = Builder::XmlMarkup.new :indent => 2
@@ -194,18 +212,6 @@ module ActiveMerchant
           add_signed_digest(xml, timestamp, @options[:login], options[:order_id], '', '', options[:user][:id])
         end
         xml.target!
-
-        # <card>
-        # <ref>visa01</ref>
-        # <payerref>smithj01</payerref>
-        # <number>498843******9991</number>
-        # <expdate>0104</expdate>
-        # <chname>John Smith</chname>
-        # <type>visa</type>
-        # <issueno />
-        # </card>
-        # <sha1hash>4d708b24e3494bf80916ba3c8afd8347060fdd65</sha1hash>
-        # </request>
       end
 
       def build_new_payee_request(options = {})
