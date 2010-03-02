@@ -383,6 +383,10 @@ SRC
 
   end
 
+  def test_receipt_in_xml
+    
+  end
+
   private
   
   def successful_purchase_response

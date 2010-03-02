@@ -229,6 +229,23 @@ module ActiveMerchant
         xml.target!
       end
 
+      def build_receipt_in_request(action, money, credit_card, options)
+        timestamp = self.class.timestamp
+        xml = Builder::XmlMarkup.new :indent => 2
+        xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'receipt-in' do
+          add_merchant_details(xml, options)
+          xml.tag! 'orderid', sanitize_order_id(options[:order_id])
+          add_ammount(xml, money, options)
+          xml.tag! 'payerref', options[:user][:id]
+          xml.tag! 'paymentmethod', options[:payment_method]
+          xml.tag! 'autosettle', 'flag' => auto_settle_flag(action)
+          add_signed_digest(xml, timestamp, @options[:login], options[:order_id], amount(money), (options[:currency] || currency(money)), credit_card.number)
+          add_comments(xml, options)
+          add_address_and_customer_info(xml, options)
+        end
+        xml.target!
+      end
+      
       private
       def commit(request)
         response = ssl_post(URL, request)
