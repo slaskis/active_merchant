@@ -357,34 +357,29 @@ SRC
 
     ActiveMerchant::Billing::RealexGateway.expects(:timestamp).returns('20090824160201')
 
-    valid_new_payee_request_xml = <<-SRC
-<request timestamp="20090824160201" type="payer-new">
+    valid_new_card_request_xml = <<-SRC
+<request timestamp="20090824160201" type="card-new">
   <merchantid>your_merchant_id</merchantid>
   <account>your_account</account>
   <orderid>1</orderid>
-  <payer type="Business" ref="1">
-    <firstname>John</firstname>
-    <surname>Smith</surname>
-  </payer>
+  <card>
+    <ref>visa01</ref>
+    <payerref>1</payerref>
+    <number>4263971921001307</number>
+    <expdate>0808</expdate>
+    <chname>Longbob Longsen</chname>
+    <type>VISA</type>
+    <issueno></issueno>
+    <cvn>
+      <number></number>
+      <presind></presind>
+    </cvn>
+  </card>
   <sha1hash>388dd92c8b251ee8970fb4770dc0fed31aa6f1ba</sha1hash>
 </request>
 SRC
-# <request type="card-new" timestamp="20030516181127">
-# <merchantid>yourmerchantid</merchantid>
-# <orderid>uniqueid</orderid>
-# <card>
-# <ref>visa01</ref>
-# <payerref>smithj01</payerref>
-# <number>498843******9991</number>
-# <expdate>0104</expdate>
-# <chname>John Smith</chname>
-# <type>visa</type>
-# <issueno />
-# </card>
-# <sha1hash>4d708b24e3494bf80916ba3c8afd8347060fdd65</sha1hash>
-# </request>
 
-    assert_equal valid_new_payee_request_xml, @gateway.build_new_payee_request(options)
+    assert_equal valid_new_card_request_xml, @gateway.build_new_card_request(@credit_card, options)
 
   end
 

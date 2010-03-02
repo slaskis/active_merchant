@@ -175,10 +175,11 @@ module ActiveMerchant
       def build_new_card_request(credit_card, options = {})
         timestamp = self.class.timestamp
         xml = Builder::XmlMarkup.new :indent => 2
-        xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'payer-new' do
+        xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'card-new' do
           add_merchant_details(xml, options)
           xml.tag! 'orderid', sanitize_order_id(options[:order_id])
           xml.tag! 'card' do
+            xml.tag! 'ref', 'visa01'
             xml.tag! 'payerref', options[:user][:id]
             xml.tag! 'number', credit_card.number
             xml.tag! 'expdate', expiry_date(credit_card)
