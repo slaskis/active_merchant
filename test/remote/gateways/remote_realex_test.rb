@@ -349,20 +349,24 @@ class RemoteRealexTest < Test::Unit::TestCase
     assert_equal 'Successful', response.message   
   end
   
-  #def test_realex_store_card
-  #  options = {
-  #    :order_id => generate_unique_id,
-  #    :user => {
-  #      :id => 1
-  #    }
-  #  }
-  #  response = @gateway.store_card(@visa, options)
-  #    
-  #  assert_not_nil response
-  #  assert_success response
-  #  assert response.test?
-  #  assert response.authorization.length > 0
-  #  assert_equal 'Successful', response.message
-  #end
+  def test_realex_store_card
+    options = {
+      :order_id => generate_unique_id,
+      :user => {
+        :id => generate_unique_id,
+        :first_name => 'John',
+        :last_name => 'Smith'
+      }
+    }
+    response = @gateway.store_user(options)
+    
+    options.merge!(:order_id => generate_unique_id)
+    store_card_response = @gateway.store_card(@visa, options)
+
+    assert_not_nil store_card_response
+    assert_success store_card_response
+    assert_equal 'Successful', store_card_response.message
+
+  end
   
 end

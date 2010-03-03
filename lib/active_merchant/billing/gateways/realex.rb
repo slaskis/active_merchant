@@ -201,7 +201,7 @@ module ActiveMerchant
           return payee_response
         end
       end
-      
+
       def build_new_card_request(credit_card, options = {})
         timestamp = self.class.timestamp
         xml = Builder::XmlMarkup.new :indent => 2
@@ -220,8 +220,9 @@ module ActiveMerchant
               xml.tag! 'number', credit_card.verification_value
               xml.tag! 'presind', (options['presind'] || (credit_card.verification_value? ? 1 : nil))
             end
-          end          
-          add_signed_digest(xml, timestamp, @options[:login], options[:order_id], '', '', options[:user][:id])
+          end
+          # timestamp.merchantid.orderid.amount.currency.payerref.chname.(card)number
+          add_signed_digest(xml, timestamp, @options[:login], options[:order_id], '', '', options[:user][:id], credit_card.name, credit_card.number)
         end
         xml.target!
       end
@@ -278,7 +279,6 @@ module ActiveMerchant
       def commit_recurring(request)
         response = ssl_post(RECURRING_PAYMENTS_URL, request)
         parsed = parse(response)
-        STDERR.puts request.inspect
         Response.new(parsed[:result] == "00", message_from(parsed), parsed,
           :test => parsed[:message] =~ /\[ test system \]/,
           :authorization => parsed[:authcode],
@@ -448,9 +448,9 @@ module ActiveMerchant
 
       def stringify_values(values)
         string = ""
-        (0..5).each do |i|
-          string << "#{values[i]}"
-          string << "." unless i == 5
+        values.each do |val|
+          string << "#{val}"
+          string << "." unless val == values.last
         end
         string
       end
