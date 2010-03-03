@@ -337,7 +337,7 @@ module ActiveMerchant
           add_merchant_details(xml, options)
           add_transaction_identifiers(xml, authorization, options)
           add_comments(xml, options)
-          add_signed_digest(xml, timestamp, @options[:login], options[:order_id])
+          add_signed_digest(xml, timestamp, @options[:login], options[:order_id], '', '', '')
         end
         xml.target!
       end
@@ -352,7 +352,7 @@ module ActiveMerchant
           xml.tag! 'refundhash', @options[:refund_hash] if @options[:refund_hash]
           xml.tag! 'autosettle', 'flag' => 1          
           add_comments(xml, options)
-          add_signed_digest(xml, timestamp, @options[:login], options[:order_id], amount(money), (options[:currency] || currency(money)))
+          add_signed_digest(xml, timestamp, @options[:login], options[:order_id], amount(money), (options[:currency] || currency(money)), '')
         end
         xml.target!
       end
@@ -364,7 +364,7 @@ module ActiveMerchant
           add_merchant_details(xml, options)
           add_transaction_identifiers(xml, authorization, options)
           add_comments(xml, options)
-          add_signed_digest(xml, timestamp, @options[:login], options[:order_id])
+          add_signed_digest(xml, timestamp, @options[:login], options[:order_id], '', '', '')
         end
         xml.target!
       end
@@ -450,7 +450,7 @@ module ActiveMerchant
         string = ""
         values.each do |val|
           string << "#{val}"
-          string << "." unless val == values.last
+          string << "." unless val.equal?(values.last)
         end
         string
       end
