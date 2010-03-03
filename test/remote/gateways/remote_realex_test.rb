@@ -137,14 +137,14 @@ class RemoteRealexTest < Test::Unit::TestCase
         :order_id => generate_unique_id,
         :description => 'Test Realex coms error'
       )
-      
+
       assert_not_nil response
       assert_failure response
       
       assert_equal '205', response.params['result']
       assert_equal RealexGateway::BANK_ERROR, response.message
-    end      
-  
+    end
+
   end
   
   def test_realex_ccn_error
