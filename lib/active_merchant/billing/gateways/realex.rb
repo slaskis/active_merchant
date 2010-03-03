@@ -457,7 +457,6 @@ module ActiveMerchant
       
       def add_signed_digest(xml, *values)
         string = stringify_values(values)
-        STDERR.puts string
         xml.tag! 'sha1hash', sha1from(string)
       end
       
