@@ -173,6 +173,13 @@ module ActiveMerchant
       end
 
       # * <tt>recurring(money, creditcard, options = {})</tt>
+      def recurring(money, credit_card, options = {})
+        requires!(options, :order_id)
+
+        request = build_receipt_in_request(money, credit_card, options) 
+        commit_recurring(request)
+      end
+
       # * <tt>store(creditcard, options = {})</tt>
       # http://resource.realexpayments.com/docs/recurring_payments_guide.pdf
       def store_card(credit_card, options = {})
@@ -252,7 +259,7 @@ module ActiveMerchant
           xml.tag! 'payerref', options[:user][:id]
           xml.tag! 'paymentmethod', options[:payment_method]
           xml.tag! 'autosettle', 'flag' => '0'
-          add_signed_digest(xml, timestamp, @options[:login], options[:order_id], amount(money), (options[:currency] || currency(money)), credit_card.number, options[:user][:id])
+          add_signed_digest(xml, timestamp, @options[:login], options[:order_id], amount(money), (options[:currency] || currency(money)), options[:user][:id])
           add_comments(xml, options)
           add_address_and_customer_info(xml, options)
         end

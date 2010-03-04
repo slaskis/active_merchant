@@ -366,7 +366,30 @@ class RemoteRealexTest < Test::Unit::TestCase
     assert_not_nil store_card_response
     assert_success store_card_response
     assert_equal 'Successful', store_card_response.message
-
   end
   
+  def test_realex_receipt_in
+    options = {
+      :order_id => generate_unique_id,
+      :user => {
+        :id => generate_unique_id,
+        :first_name => 'John',
+        :last_name => 'Smith'
+      }
+    }
+    response = @gateway.store_user(options)
+    
+    options.merge!(:order_id => generate_unique_id)
+    store_card_response = @gateway.store_card(@visa, options)
+
+    options.merge!({
+      :order_id => generate_unique_id,
+      :payment_method => 'visa01'
+    })
+    receipt_in_response = @gateway.recurring(@amount, @visa, options)
+
+    assert_not_nil receipt_in_response
+    assert_success receipt_in_response
+    assert_equal 'Successful', receipt_in_response.message
+  end
 end
