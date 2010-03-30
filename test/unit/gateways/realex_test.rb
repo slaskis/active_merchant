@@ -284,10 +284,10 @@ SRC
     assert_equal "timestamp.merchantid.orderid.ammount.currency.creditcard", 
       @gateway.stringify_values(["timestamp","merchantid", "orderid", "ammount", "currency", "creditcard"])
     
-    assert_equal "timestamp.merchantid.orderid.ammount.currency.", 
+    assert_equal "timestamp.merchantid.orderid.ammount.currency", 
       @gateway.stringify_values(["timestamp","merchantid", "orderid", "ammount", "currency"])
     
-    assert_equal "timestamp.merchantid.orderid...", 
+    assert_equal "timestamp.merchantid.orderid", 
       @gateway.stringify_values(["timestamp","merchantid", "orderid"])
   end
   
@@ -348,6 +348,7 @@ SRC
     gateway = RealexGateway.new(:login => @login, :password => @password, :account => @account)
     options = {
       :order_id => '1',
+      :payment_method => 'visa01',
       :user => {
         :id => 1,
         :first_name => 'John',
@@ -375,7 +376,7 @@ SRC
       <presind></presind>
     </cvn>
   </card>
-  <sha1hash>388dd92c8b251ee8970fb4770dc0fed31aa6f1ba</sha1hash>
+  <sha1hash>2b95dd150f1d7192fe1e4c2d701f826883e5956b</sha1hash>
 </request>
 SRC
 
@@ -406,7 +407,7 @@ SRC
   <payerref>1</payerref>
   <paymentmethod>visa01</paymentmethod>
   <autosettle flag="0"/>
-  <sha1hash>3499d7bc8dbacdcfba2286bd74916d026bae630f</sha1hash>
+  <sha1hash>f8365c0ba649e82bed6eebc1043e6a211919676e</sha1hash>
 </request>
 SRC
 
