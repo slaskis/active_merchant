@@ -226,7 +226,7 @@ module ActiveMerchant
             xml.tag! 'expdate', expiry_date(creditcard)
           end
           # TODO userid . card ref . expiry date
-          add_signed_digest(xml, timestamp, @options[:login], options[:user][:id], creditcard.name, creditcard.number)
+          add_signed_digest(xml, timestamp, @options[:login], options[:user][:id], options[:payment_method], expiry_date(creditcard))
         end
       end
       
