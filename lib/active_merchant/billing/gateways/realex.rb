@@ -186,7 +186,13 @@ module ActiveMerchant
         requires!(options, :order_id)
         request = build_new_card_request(credit_card, options)
         commit_recurring(request)
-      end 
+      end
+
+
+      def unstore_card(creditcard, options = {})     
+        request = build_cancel_card_request(credit_card, options)
+        commit_recurring(request)
+      end
 
       def store_user(options = {})
         requires!(options, :order_id)
@@ -209,6 +215,21 @@ module ActiveMerchant
         end
       end
 
+      def build_cancel_card_request(creditcard, options = {})
+        timestamp = self.class.timestamp
+        xml = Builder::XmlMarkup.new :indent => 2
+        xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'card-new' do
+          add_merchant_details(xml, options)
+          xml.tag! 'card' do          
+            xml.tag! 'ref', 'visa01'
+            xml.tag! 'payerref', options[:user][:id]
+            xml.tag! 'expdate', expiry_date(credit_card)
+          end
+          # TODO userid . card ref . expiry date
+          add_signed_digest(xml, timestamp, @options[:login], options[:user][:id], credit_card.name, credit_card.number)
+        end
+      end
+      
       def build_new_card_request(credit_card, options = {})
         timestamp = self.class.timestamp
         xml = Builder::XmlMarkup.new :indent => 2
@@ -216,7 +237,7 @@ module ActiveMerchant
           add_merchant_details(xml, options)
           xml.tag! 'orderid', sanitize_order_id(options[:order_id])
           xml.tag! 'card' do
-            xml.tag! 'ref', 'visa01'
+            xml.tag! 'ref', options[:payment_method]
             xml.tag! 'payerref', options[:user][:id]
             xml.tag! 'number', credit_card.number
             xml.tag! 'expdate', expiry_date(credit_card)
@@ -277,7 +298,7 @@ module ActiveMerchant
           :cvv_result => parsed[:cvnresult],
           :body => response,
           :avs_result => { 
-            :street_match => parsed[:avspostcoderesponse],
+            :street_match => parsed[:avsaddressresponse],
             :postal_match => parsed[:avspostcoderesponse]
           }
         )
@@ -292,7 +313,7 @@ module ActiveMerchant
           :cvv_result => parsed[:cvnresult],
           :body => response,
           :avs_result => { 
-            :street_match => parsed[:avspostcoderesponse],
+            :street_match => parsed[:avsaddressresponse],
             :postal_match => parsed[:avspostcoderesponse]
           }
         )
