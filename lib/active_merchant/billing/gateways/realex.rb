@@ -190,7 +190,7 @@ module ActiveMerchant
 
 
       def unstore_card(creditcard, options = {})     
-        request = build_cancel_card_request(credit_card, options)
+        request = build_cancel_card_request(creditcard, options)
         commit_recurring(request)
       end
 
@@ -218,15 +218,15 @@ module ActiveMerchant
       def build_cancel_card_request(creditcard, options = {})
         timestamp = self.class.timestamp
         xml = Builder::XmlMarkup.new :indent => 2
-        xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'card-new' do
+        xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'card-cancel-card' do
           add_merchant_details(xml, options)
           xml.tag! 'card' do          
-            xml.tag! 'ref', 'visa01'
+            xml.tag! 'ref', options[:payment_method]
             xml.tag! 'payerref', options[:user][:id]
-            xml.tag! 'expdate', expiry_date(credit_card)
+            xml.tag! 'expdate', expiry_date(creditcard)
           end
           # TODO userid . card ref . expiry date
-          add_signed_digest(xml, timestamp, @options[:login], options[:user][:id], credit_card.name, credit_card.number)
+          add_signed_digest(xml, timestamp, @options[:login], options[:user][:id], creditcard.name, creditcard.number)
         end
       end
       

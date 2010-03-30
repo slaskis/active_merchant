@@ -415,6 +415,38 @@ SRC
 
   end
 
+  def test_card_unstore_xml
+    gateway = RealexGateway.new(:login => @login, :password => @password, :account => @account)
+    options = {
+      :order_id => '1',
+      :payment_method => 'visa01',
+      :user => {
+        :id => 1,
+        :first_name => 'John',
+        :last_name => 'Smith'
+      }
+    }
+
+    ActiveMerchant::Billing::RealexGateway.expects(:timestamp).returns('20090824160201')
+
+    valid_cancel_card_request_xml = <<-SRC
+<request timestamp="20090824160201" type="card-cancel-card">
+  <merchantid>your_merchant_id</merchantid>
+  <account>your_account</account>
+  <card>
+    <ref>visa01</ref>
+    <payerref>1</payerref>
+    <expdate>0808</expdate>
+  </card>
+  <sha1hash>b7ba1dae926645a9b19dc1909b5d7706d6cd44ee</sha1hash>
+</request>
+SRC
+
+    assert_equal valid_cancel_card_request_xml, @gateway.build_cancel_card_request(@credit_card, options)
+
+  end
+
+
   private
   
   def successful_purchase_response
@@ -618,4 +650,5 @@ SRC
     </response>
     RESPONSE
   end
+
 end
