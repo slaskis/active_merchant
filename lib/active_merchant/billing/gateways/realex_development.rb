@@ -99,6 +99,17 @@ module ActiveMerchant #:nodoc:
         end              
       end
       
+       def store_card(creditcard, options = {})
+        case creditcard.number
+        when SUCCESSFUL_CARD
+          Response.new(true, SUCCESS_MESSAGE, {:billingid => '1'}, :test => true, :authorization => AUTHORIZATION )
+        when FAILING_CARD
+          Response.new(false, FAILURE_MESSAGE, {:billingid => nil, :error => FAILURE_MESSAGE }, :test => true)
+        else
+          raise Error, ERROR_MESSAGE
+        end              
+      end
+
       def unstore(identification, options = {})
         case identification
         when '1'
