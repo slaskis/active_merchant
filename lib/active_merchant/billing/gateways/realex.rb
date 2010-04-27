@@ -172,49 +172,32 @@ module ActiveMerchant
         commit(request)
       end
 
-      # * <tt>recurring(money, creditcard, options = {})</tt>
+      # Recurring Payments
+      
       def recurring(money, credit_card, options = {})
         requires!(options, :order_id)
 
         request = build_receipt_in_request(money, credit_card, options) 
-        commit_recurring(request)
+        commit(request, :recurring)
       end
 
-      # * <tt>store(creditcard, options = {})</tt>
-      # http://resource.realexpayments.com/docs/recurring_payments_guide.pdf
-      def store_card(credit_card, options = {})
+      def store(credit_card, options = {})
         requires!(options, :order_id)
         request = build_new_card_request(credit_card, options)
-        commit_recurring(request)
+        commit(request, :recurring)
       end
 
-
-      def unstore_card(creditcard, options = {})     
+      def unstore(creditcard, options = {})     
         request = build_cancel_card_request(creditcard, options)
-        commit_recurring(request)
+        commit(request, :recurring)
       end
 
       def store_user(options = {})
         requires!(options, :order_id)
         request = build_new_payee_request(options)
-        commit_recurring(request)
+        commit(request, :recurring)
       end
  
-      def store(credit_card, options = {})
-        requires!(options, :order_id)
-        # requires a user id
-        # requires a card id...
-        
-        payee_request = build_new_payee_request(options) 
-        payee_response = commit(request)
-        if payee_response.success?
-          card_request = build_new_card_request(credit_card, options)
-          return commit(card_request)
-        else
-          return payee_response
-        end
-      end
-
       def build_cancel_card_request(creditcard, options = {})
         timestamp = self.class.timestamp
         xml = Builder::XmlMarkup.new :indent => 2
@@ -288,25 +271,13 @@ module ActiveMerchant
       end
       
       private
-      def commit(request)
-        response = ssl_post(URL, request)
+      def commit(request, endpoint=:default)
+        url = URL
+        url = RECURRING_PAYMENTS_URL if endpoint == :recurring
+
+        response = ssl_post(url, request)
         parsed = parse(response)
 
-        Response.new(parsed[:result] == "00", message_from(parsed), parsed,
-          :test => parsed[:message] =~ /\[ test system \]/,
-          :authorization => parsed[:authcode],
-          :cvv_result => parsed[:cvnresult],
-          :body => response,
-          :avs_result => { 
-            :street_match => parsed[:avsaddressresponse],
-            :postal_match => parsed[:avspostcoderesponse]
-          }
-        )
-      end
-
-      def commit_recurring(request)
-        response = ssl_post(RECURRING_PAYMENTS_URL, request)
-        parsed = parse(response)
         Response.new(parsed[:result] == "00", message_from(parsed), parsed,
           :test => parsed[:message] =~ /\[ test system \]/,
           :authorization => parsed[:authcode],

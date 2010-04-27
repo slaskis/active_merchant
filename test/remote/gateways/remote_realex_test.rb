@@ -361,7 +361,7 @@ class RemoteRealexTest < Test::Unit::TestCase
     response = @gateway.store_user(options)
     
     options.merge!(:order_id => generate_unique_id)
-    store_card_response = @gateway.store_card(@visa, options)
+    store_card_response = @gateway.store(@visa, options)
 
     assert_not_nil store_card_response
     assert_success store_card_response
@@ -380,7 +380,7 @@ class RemoteRealexTest < Test::Unit::TestCase
     response = @gateway.store_user(options)
     
     options.merge!(:order_id => generate_unique_id, :payment_method => 'visa01')
-    store_card_response = @gateway.store_card(@visa, options)
+    store_card_response = @gateway.store(@visa, options)
 
     options.merge!({
       :order_id => generate_unique_id,
@@ -405,9 +405,9 @@ class RemoteRealexTest < Test::Unit::TestCase
     response = @gateway.store_user(options)
     
     options.merge!(:order_id => generate_unique_id, :payment_method => 'visa01')
-    store_card_response = @gateway.store_card(@visa, options)
+    store_card_response = @gateway.store(@visa, options)
     
-    unstore_card_response = @gateway.unstore_card(@visa, options)
+    unstore_card_response = @gateway.unstore(@visa, options)
 
     assert_not_nil unstore_card_response
     assert_success unstore_card_response
