@@ -262,7 +262,7 @@ module ActiveMerchant
           add_ammount(xml, money, options)
           xml.tag! 'payerref', options[:user][:id]
           xml.tag! 'paymentmethod', options[:payment_method]
-          xml.tag! 'autosettle', 'flag' => '0'
+          xml.tag! 'autosettle', 'flag' => '1'
           add_signed_digest(xml, timestamp, @options[:login], options[:order_id], amount(money), (options[:currency] || currency(money)), options[:user][:id])
           add_comments(xml, options)
           add_address_and_customer_info(xml, options)
