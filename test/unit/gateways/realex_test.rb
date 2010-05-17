@@ -406,7 +406,7 @@ SRC
   <amount currency=\"EUR\">100</amount>
   <payerref>1</payerref>
   <paymentmethod>visa01</paymentmethod>
-  <autosettle flag="0"/>
+  <autosettle flag="1"/>
   <sha1hash>f8365c0ba649e82bed6eebc1043e6a211919676e</sha1hash>
 </request>
 SRC
