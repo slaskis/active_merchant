@@ -404,7 +404,7 @@ class RemoteRealexTest < Test::Unit::TestCase
     }
     response = @gateway.store_user(options)
     
-    options.merge!(:order_id => generate_unique_id, :payment_method => 'visa01')
+    options.merge!(:order_id => generate_unique_id, :payment_method => generate_unique_id)
     store_card_response = @gateway.store(@visa, options)
     
     unstore_card_response = @gateway.unstore(@visa, options)
