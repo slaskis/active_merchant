@@ -198,79 +198,8 @@ module ActiveMerchant
         commit(request, :recurring)
       end
  
-      def build_cancel_card_request(creditcard, options = {})
-        timestamp = self.class.timestamp
-        xml = Builder::XmlMarkup.new :indent => 2
-        xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'card-cancel-card' do
-          add_merchant_details(xml, options)
-          xml.tag! 'card' do          
-            xml.tag! 'ref', options[:payment_method]
-            xml.tag! 'payerref', options[:user][:id]
-            xml.tag! 'expdate', expiry_date(creditcard)
-          end
-          # TODO userid . card ref . expiry date
-          add_signed_digest(xml, timestamp, @options[:login], options[:user][:id], options[:payment_method])
-        end
-      end
-      
-      def build_new_card_request(credit_card, options = {})
-        timestamp = self.class.timestamp
-        xml = Builder::XmlMarkup.new :indent => 2
-        xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'card-new' do
-          add_merchant_details(xml, options)
-          xml.tag! 'orderid', sanitize_order_id(options[:order_id])
-          xml.tag! 'card' do
-            xml.tag! 'ref', options[:payment_method]
-            xml.tag! 'payerref', options[:user][:id]
-            xml.tag! 'number', credit_card.number
-            xml.tag! 'expdate', expiry_date(credit_card)
-            xml.tag! 'chname', credit_card.name
-            xml.tag! 'type', CARD_MAPPING[card_brand(credit_card).to_s]
-            xml.tag! 'issueno', credit_card.issue_number
-            xml.tag! 'cvn' do
-              xml.tag! 'number', credit_card.verification_value
-              xml.tag! 'presind', (options['presind'] || (credit_card.verification_value? ? 1 : nil))
-            end
-          end
-          # timestamp.merchantid.orderid.amount.currency.payerref.chname.(card)number
-          add_signed_digest(xml, timestamp, @options[:login], options[:order_id], '', '', options[:user][:id], credit_card.name, credit_card.number)
-        end
-        xml.target!
-      end
-
-      def build_new_payee_request(options)
-        timestamp = self.class.timestamp
-        xml = Builder::XmlMarkup.new :indent => 2
-        xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'payer-new' do
-          add_merchant_details(xml, options)
-          xml.tag! 'orderid', sanitize_order_id(options[:order_id])
-          xml.tag! 'payer', 'type' => 'Business', 'ref' => options[:user][:id] do
-            xml.tag! 'firstname', options[:user][:first_name]
-            xml.tag! 'surname', options[:user][:last_name]
-          end
-          add_signed_digest(xml, timestamp, @options[:login], options[:order_id], '', '', options[:user][:id])
-        end
-        xml.target!
-      end
-
-      def build_receipt_in_request(money, credit_card, options)
-        timestamp = self.class.timestamp
-        xml = Builder::XmlMarkup.new :indent => 2
-        xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'receipt-in' do
-          add_merchant_details(xml, options)
-          xml.tag! 'orderid', sanitize_order_id(options[:order_id])
-          add_ammount(xml, money, options)
-          xml.tag! 'payerref', options[:user][:id]
-          xml.tag! 'paymentmethod', options[:payment_method]
-          xml.tag! 'autosettle', 'flag' => '1'
-          add_signed_digest(xml, timestamp, @options[:login], options[:order_id], amount(money), (options[:currency] || currency(money)), options[:user][:id])
-          add_comments(xml, options)
-          add_address_and_customer_info(xml, options)
-        end
-        xml.target!
-      end
-      
       private
+      
       def commit(request, endpoint=:default)
         url = URL
         url = RECURRING_PAYMENTS_URL if endpoint == :recurring
@@ -367,6 +296,78 @@ module ActiveMerchant
         xml.target!
       end
 
+      def build_cancel_card_request(creditcard, options = {})
+        timestamp = self.class.timestamp
+        xml = Builder::XmlMarkup.new :indent => 2
+        xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'card-cancel-card' do
+          add_merchant_details(xml, options)
+          xml.tag! 'card' do          
+            xml.tag! 'ref', options[:payment_method]
+            xml.tag! 'payerref', options[:user][:id]
+            xml.tag! 'expdate', expiry_date(creditcard)
+          end
+          # TODO userid . card ref . expiry date
+          add_signed_digest(xml, timestamp, @options[:login], options[:user][:id], options[:payment_method])
+        end
+      end
+      
+      def build_new_card_request(credit_card, options = {})
+        timestamp = self.class.timestamp
+        xml = Builder::XmlMarkup.new :indent => 2
+        xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'card-new' do
+          add_merchant_details(xml, options)
+          xml.tag! 'orderid', sanitize_order_id(options[:order_id])
+          xml.tag! 'card' do
+            xml.tag! 'ref', options[:payment_method]
+            xml.tag! 'payerref', options[:user][:id]
+            xml.tag! 'number', credit_card.number
+            xml.tag! 'expdate', expiry_date(credit_card)
+            xml.tag! 'chname', credit_card.name
+            xml.tag! 'type', CARD_MAPPING[card_brand(credit_card).to_s]
+            xml.tag! 'issueno', credit_card.issue_number
+            xml.tag! 'cvn' do
+              xml.tag! 'number', credit_card.verification_value
+              xml.tag! 'presind', (options['presind'] || (credit_card.verification_value? ? 1 : nil))
+            end
+          end
+          # timestamp.merchantid.orderid.amount.currency.payerref.chname.(card)number
+          add_signed_digest(xml, timestamp, @options[:login], options[:order_id], '', '', options[:user][:id], credit_card.name, credit_card.number)
+        end
+        xml.target!
+      end
+
+      def build_new_payee_request(options)
+        timestamp = self.class.timestamp
+        xml = Builder::XmlMarkup.new :indent => 2
+        xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'payer-new' do
+          add_merchant_details(xml, options)
+          xml.tag! 'orderid', sanitize_order_id(options[:order_id])
+          xml.tag! 'payer', 'type' => 'Business', 'ref' => options[:user][:id] do
+            xml.tag! 'firstname', options[:user][:first_name]
+            xml.tag! 'surname', options[:user][:last_name]
+          end
+          add_signed_digest(xml, timestamp, @options[:login], options[:order_id], '', '', options[:user][:id])
+        end
+        xml.target!
+      end
+
+      def build_receipt_in_request(money, credit_card, options)
+        timestamp = self.class.timestamp
+        xml = Builder::XmlMarkup.new :indent => 2
+        xml.tag! 'request', 'timestamp' => timestamp, 'type' => 'receipt-in' do
+          add_merchant_details(xml, options)
+          xml.tag! 'orderid', sanitize_order_id(options[:order_id])
+          add_ammount(xml, money, options)
+          xml.tag! 'payerref', options[:user][:id]
+          xml.tag! 'paymentmethod', options[:payment_method]
+          xml.tag! 'autosettle', 'flag' => '1'
+          add_signed_digest(xml, timestamp, @options[:login], options[:order_id], amount(money), (options[:currency] || currency(money)), options[:user][:id])
+          add_comments(xml, options)
+          add_address_and_customer_info(xml, options)
+        end
+        xml.target!
+      end
+      
       def add_address_and_customer_info(xml, options)
         billing_address = options[:billing_address] || options[:address]
         shipping_address = options[:shipping_address]

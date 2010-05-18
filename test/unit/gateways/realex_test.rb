@@ -5,7 +5,9 @@ class RealexTest < Test::Unit::TestCase
   
   class ActiveMerchant::Billing::RealexGateway
     # For the purposes of testing, lets redefine some protected methods as public.
-    public :build_purchase_or_authorization_request, :build_credit_request, :build_void_request, :build_capture_request, :stringify_values, :avs_input_code
+    public :build_purchase_or_authorization_request, :build_credit_request, :build_void_request, 
+      :build_capture_request, :stringify_values, :avs_input_code, :build_cancel_card_request,
+      :build_new_card_request, :build_new_payee_request, :build_receipt_in_request
   end
   
   def setup
@@ -438,7 +440,7 @@ SRC
     <payerref>1</payerref>
     <expdate>0808</expdate>
   </card>
-  <sha1hash>f6b386138f863773b1b9ca6d9998b66ab3eed7f8</sha1hash>
+  <sha1hash>ff0d7ff2ff82fef20de477b4d91478533bd4ab85</sha1hash>
 </request>
 SRC
 
