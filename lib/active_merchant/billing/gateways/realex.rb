@@ -209,7 +209,7 @@ module ActiveMerchant
             xml.tag! 'expdate', expiry_date(creditcard)
           end
           # TODO userid . card ref . expiry date
-          add_signed_digest(xml, timestamp, @options[:login], options[:user][:id], options[:payment_method], expiry_date(creditcard))
+          add_signed_digest(xml, timestamp, @options[:login], options[:user][:id], options[:payment_method])
         end
       end
       
@@ -274,7 +274,6 @@ module ActiveMerchant
       def commit(request, endpoint=:default)
         url = URL
         url = RECURRING_PAYMENTS_URL if endpoint == :recurring
-        STDERR.puts request
         response = ssl_post(url, request)
         parsed = parse(response)
 
@@ -456,7 +455,6 @@ module ActiveMerchant
       
       def add_signed_digest(xml, *values)
         string = stringify_values(values)
-        STDERR.puts string
         xml.tag! 'sha1hash', sha1from(string)
       end
       
