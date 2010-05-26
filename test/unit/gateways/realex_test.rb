@@ -1,5 +1,6 @@
 require File.join(File.dirname(__FILE__) + '/../../test_helper')
 require 'digest/sha1'
+require 'hpricot'
 
 class RealexTest < Test::Unit::TestCase
   
@@ -314,6 +315,83 @@ SRC
     assert_success response
     assert response.test?
     
+  end
+  
+  def test_address_with_avs_code
+    options = {
+      :billing_address => @address
+    }
+    ActiveMerchant::Billing::RealexGateway.expects(:timestamp).returns('20090824160201')    
+    request = @gateway.build_purchase_or_authorization_request(:purchase, @amount, @credit_card, options)
+    
+    avs_request = <<-SRC
+<request timestamp="20090824160201" type="auth">
+  <merchantid>your_merchant_id</merchantid>
+  <account>your_account</account>
+  <orderid></orderid>
+  <amount currency="EUR">100</amount>
+  <card>
+    <number>4263971921001307</number>
+    <expdate>0808</expdate>
+    <chname>Longbob Longsen</chname>
+    <type>VISA</type>
+    <issueno></issueno>
+    <cvn>
+      <number></number>
+      <presind></presind>
+    </cvn>
+  </card>
+  <autosettle flag="1"/>
+  <sha1hash>2cf9b05d95c7a2eefc3936989b2696a189b518c9</sha1hash>
+  <tssinfo>
+    <address type="billing">
+      <code>28|123</code>
+      <country>Northern Ireland</country>
+    </address>
+  </tssinfo>
+</request>
+SRC
+
+    assert_equal avs_request, request
+  end
+
+  def test_skip_avs_check
+    options = {
+      :billing_address => @address,
+      :skip_avs_check => true
+    }
+    ActiveMerchant::Billing::RealexGateway.expects(:timestamp).returns('20090824160201')    
+    request = @gateway.build_purchase_or_authorization_request(:purchase, @amount, @credit_card, options)
+    
+    avs_request = <<-SRC
+<request timestamp="20090824160201" type="auth">
+  <merchantid>your_merchant_id</merchantid>
+  <account>your_account</account>
+  <orderid></orderid>
+  <amount currency="EUR">100</amount>
+  <card>
+    <number>4263971921001307</number>
+    <expdate>0808</expdate>
+    <chname>Longbob Longsen</chname>
+    <type>VISA</type>
+    <issueno></issueno>
+    <cvn>
+      <number></number>
+      <presind></presind>
+    </cvn>
+  </card>
+  <autosettle flag="1"/>
+  <sha1hash>2cf9b05d95c7a2eefc3936989b2696a189b518c9</sha1hash>
+  <tssinfo>
+    <address type="billing">
+      <code>BT2 8XX</code>
+      <country>Northern Ireland</country>
+    </address>
+  </tssinfo>
+</request>
+SRC
+
+    assert_equal avs_request, request
   end
 
   def test_payee_new_xml

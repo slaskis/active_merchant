@@ -383,7 +383,7 @@ module ActiveMerchant
           
           if billing_address
             xml.tag! 'address', 'type' => 'billing' do
-              xml.tag! 'code', avs_input_code( billing_address )
+              xml.tag! 'code', avs_input_code_or_zip( billing_address, options )
               xml.tag! 'country', billing_address[:country]
             end
           end
@@ -396,6 +396,10 @@ module ActiveMerchant
           end
           
         end
+      end
+      
+      def avs_input_code_or_zip(address, options)
+        options[ :skip_avs_check ] ? address[ :zip ] : avs_input_code( address )
       end
       
       def add_merchant_details(xml, options)
